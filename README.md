@@ -29,3 +29,13 @@ Authors: Antoine and Arne
 
 - change the activation function
 - change the topology of the input ANN (number of layers, number of neurons per layer)
+
+### Error evaluation
+
+- implement other error metrics (MSE, RMSE, R2)
+
+### Informants selection
+- implement different informants selection strategies (radius-based, k-nearest neighbors, random every iteration)
+
+### ANN Backpropagation
+- implement backpropagation training to train further the best MLP found by PSO
