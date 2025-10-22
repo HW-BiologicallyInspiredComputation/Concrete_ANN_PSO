@@ -39,3 +39,7 @@ Authors: Antoine and Arne
 
 ### ANN Backpropagation
 - implement backpropagation training to train further the best MLP found by PSO
+
+### Sequential Model
+
+### Same velocity as position to explore far
