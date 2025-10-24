@@ -43,3 +43,7 @@ Authors: Antoine and Arne
 ### Sequential Model
 
 ### Same velocity as position to explore far
+
+### Clip velocity and position
+- bounce back at the boundaries
+- reset position/velocity when out of bounds
