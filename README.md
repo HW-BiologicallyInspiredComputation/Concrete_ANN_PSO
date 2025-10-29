@@ -24,6 +24,7 @@ Authors: Antoine and Arne
 
 - using crossvalidation to evaluate model performance
 - using a validation dataset
+- make output proportional by dividing by max value of target in training set
 
 ### PSO
 
@@ -47,3 +48,12 @@ Authors: Antoine and Arne
 ### Clip velocity and position
 - bounce back at the boundaries
 - reset position/velocity when out of bounds
+
+### Accuracy
+
+### Genetic Algorithm
+- Limit training with an amount of time instead of epochs
+- Don't overtrain, stop training if the loss has not decreased for 20 epochs
+
+parameters:
+- swarm_size
