@@ -17,34 +17,68 @@ if "manager" not in st.session_state:
 
 manager = st.session_state.manager
 
-# Sidebar for training controls
-st.sidebar.header("Training Controls")
+# Create two main columns for dashboard layout
+dashboard_left, dashboard_right = st.columns([1, 1.5])  # Right column slightly wider for chart
 
-if not manager.is_training():
-    st.sidebar.success("✅ Ready to start training")
-    if st.sidebar.button("🚀 Start Training"):
-        manager.start_training()
-else:
-    st.sidebar.warning("⏳ Training is running...")
-    if st.sidebar.button("🛑 Stop Training"):
-        manager.stop_training()
+with dashboard_left:
+    # Sidebar for training controls moved to left column
+    st.header("Training Controls")
+    
+    if not manager.is_training():
+        st.success("✅ Ready to start training")
+        if st.button("🚀 Start Training", use_container_width=True):
+            manager.start_training()
+    else:
+        st.warning("⏳ Training is running...")
+        if st.button("🛑 Stop Training", use_container_width=True):
+            manager.stop_training()
 
-# Main dashboard
-progress = manager.get_progress()
-st.subheader("Training Progress")
-
-col1, col2 = st.columns(2)
-
-# Progress bar + metrics
-with col1:
+    # Progress and metrics
+    progress = manager.get_progress()
+    st.subheader("Training Progress")
     st.progress(progress["percent"])
-    st.metric("Current Epoch", progress["epoch"])
-    st.metric("Best Fitness", f"{progress['best_fitness']:.4f}")
+    st.metric("Current Generation", progress["epoch"])
+    st.metric("Best Accuracy", f"{progress['best_fitness']:.4f}")
+    st.metric("Average Accuracy", f"{progress['avg_fitness']:.4f}")
     st.metric("Elapsed Time (s)", f"{progress['elapsed_time']:.1f}")
 
-# Live graph
-with col2:
-    st.line_chart(progress["loss_history"])
+with dashboard_right:
+    # Chart area
+    st.header("Training History")
+    chart_placeholder = st.empty()
+    
+    if "ga_history" in progress and not progress["ga_history"].empty:
+        df = progress["ga_history"].copy()
+        chart_placeholder.line_chart(
+            data=df,
+            y=['best_accuracy', 'avg_accuracy'],
+            height=400  # Fixed height for stability
+        )
+        
+        # Show best hyperparameters
+        best_genome = progress.get("best_genome")
+        if best_genome:
+            timestamp = progress.get("best_genome_timestamp", 0)
+            generation = progress["epoch"]
+            st.subheader(f"🎯 Generation {generation} Best PSO Parameters at {time.strftime('%H:%M:%S', time.localtime(timestamp))}")
+            col1, col2 = st.columns(2)
+            with col1:
+                st.write("**PSO Configuration:**")
+                st.write(f"• Swarm Size: {best_genome['swarm_size']}")
+                st.write(f"• Number of Informants: {best_genome['num_informants']}")
+                st.write(f"• Position Scale: {best_genome['particle_initial_position_scale']}")
+                st.write(f"• Topology: {best_genome['ann_layers']}")
+            
+            with col2:
+                st.write("**Acceleration Coefficients:**")
+                accel = best_genome['accel']
+                st.write(f"• Inertia Weight: {accel['inertia_weight']:.3f}")
+                st.write(f"• Cognitive Weight: {accel['cognitive_weight']:.3f}")
+                st.write(f"• Social Weight: {accel['social_weight']:.3f}")
+                st.write(f"• Global Best Weight: {accel['global_best_weight']:.3f}")
+                st.write(f"• Jump Size: {accel['jump_size']:.3f}")
+    else:
+        chart_placeholder.info("Waiting for training data...")
 
-# Auto refresh every 2 seconds
-st_autorefresh(interval=2000, key="training_refresh")
+# Reduce refresh rate to prevent flickering
+st_autorefresh(interval=3000, key="training_refresh")

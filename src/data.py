@@ -1,8 +1,8 @@
 import pandas as pd
 
-def load_data():
+def load_data(path: str = "../data/concrete_data.csv"):
     # Load the concrete data
-    df = pd.read_csv("../data/concrete_data.csv")
+    df = pd.read_csv(path)
 
     # Separate into train and test datasets
     train_df = df.sample(frac=0.7, random_state=42) # random state ensures we always get the same sample

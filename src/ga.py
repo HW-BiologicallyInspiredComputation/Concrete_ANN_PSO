@@ -242,9 +242,9 @@ class PsoEvaluator:
                             break
                     epoch += 1
                 # normal return: the best found
-                if self.verbose:
-                    print(f"[eval] completed training epochs: {epoch}, best fitness: {pso.best_global_fitness:.6g}")
                 acc = pso.get_accuracy(self.X_test, self.Y_test)
+                if self.verbose:
+                    print(f"[eval] completed training epochs: {epoch}, accuracy: {acc:.6g}")
                 accuracies.append(acc)
             except Exception as e:
                 # crash in training -> penalize heavily
