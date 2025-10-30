@@ -37,18 +37,22 @@ class TrainManager:
                 Linear(size_input=16, size_hidden=1)
             ),
             loss_function=mean_squared_error,
-            max_train_seconds=0.1,
-            patience_window=10,
+            max_train_seconds=15.0,
+            num_genome_repeats_per_iteration=5,
+            max_repeats_per_genome=50,
+            explosion_factor=100,
+            accuracy_checks_every=20,
+            patience_window=15,
             verbose=False
         )
         
         self.optimizer = GeneticPsoOptimizer(
             evaluator=self.evaluator,
-            population_size=10,
-            generations=2,
+            population_size=22,
+            generations=50,
             mutation_rate=0.2,
             crossover_rate=0.7,
-            elitism=2,
+            elitism=8,
             tournament_k=3,
             parallel=False
         )
