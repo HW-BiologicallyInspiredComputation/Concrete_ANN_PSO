@@ -9,7 +9,6 @@ from linear import Linear
 from activations import ActivationReLU
 from utils import mean_squared_error
 from data import load_data
-
 # Creation of AI class for training the MLP with our PSO
 
 @dataclass
@@ -65,14 +64,12 @@ class ParticleSwarmOptimisation:
             X: np.ndarray[tuple[int, int]],
             Y: np.ndarray[tuple[int]],
             swarm_size: int,
-            epochs: int,
             accel_coeff: AccelerationCoefficients,
             num_informants: int,
             loss_function,
             particle_initial_position_scale: Tuple[float, float],
             model: Sequential,
         ):
-        self.epochs = epochs
         self.accel_coeff = accel_coeff
         self.swarm_size = swarm_size
         self.num_informants = num_informants
@@ -102,40 +99,31 @@ class ParticleSwarmOptimisation:
             others = [p for p in self.population if p is not particle]
             particle.informants = np.random.choice(others, size=self.num_informants, replace=False)
 
-    def update_best_global(self, epoch):
+    def update_best_global(self):
         loss = 0.0
         fitnesses = []
         for particle in self.population:
             self.model.from_vector(particle.position)
-            # if loss == 0.0:
-            #     print(f"Particle position sample: {particle.position[:5]}")
             fitness = self.loss_function(self.Y, self.model.forward(self.X))
             fitnesses.append(fitness)
             loss += fitness
-            # print(f"Particle fitness: {fitness}")
             if fitness < particle.fittest:
                 particle.best_personal = particle.position.copy()
                 particle.fittest = fitness
                 if self.best_global_fitness is None or fitness < self.best_global_fitness:
-                    # print(f"{epoch}: New best found: {fitness}")
                     self.best_global = particle.position.copy()
                     self.best_global_fitness = fitness
         return np.mean(fitnesses)
 
-    def get_accuracy(self, X_test, Y_test) -> Tuple[float, float]:
-        """Evaluate the accuracy in percent of the best global model on test and train data."""
+    def get_accuracy(self, x, y_true) -> float:
+        """Evaluate the accuracy in percent of the best global model on given data."""
         self.model.from_vector(self.best_global)
-        test_predictions = self.model.forward(X_test)
-        train_predictions = self.model.forward(self.X)
+        y_pred = self.model.forward(x)
 
-        def relative_accuracy(y_true, y_pred):
-            mae = mean_absolute_error(y_true, y_pred)
-            return 100 * (1.0 - mae / np.mean(np.abs(y_true)))
+        mae = mean_absolute_error(y_true, y_pred)
+        accuracy = 100 * (1.0 - mae / np.mean(np.abs(y_true)))
 
-        test_accuracy = relative_accuracy(Y_test, test_predictions)
-        train_accuracy = relative_accuracy(self.Y, train_predictions)
-
-        return train_accuracy, test_accuracy
+        return accuracy
 
     def update_velocities(self):
         for particle in self.population:
@@ -164,13 +152,17 @@ class ParticleSwarmOptimisation:
             clear_output(wait=True)
             display(fig)
             plt.close(fig)
+            
+    def train_epoch(self):
+        avg_fitness = self.update_best_global()
+        self.update_velocities()
+        self.update_positions()
+        return avg_fitness
 
-    def train(self):
+    def train(self, epochs):
         self.update_informants()
-        for epoch in range(self.epochs):
-            avg_fitness = self.update_best_global(epoch)
-            self.update_velocities()
-            self.update_positions()
+        for epoch in range(epochs):
+            avg_fitness = self.train_epoch()
             self.plot(epoch, avg_fitness)
         return (self.best_global, self.best_global_fitness, self.losses)
 
