@@ -7,12 +7,11 @@ import time
 import random
 import pandas as pd
 from db import save_progress, load_progress
-from ga import GeneticPsoOptimizer, PsoEvaluator, PsoGenome, AccelerationCoefficientsGenome
+from ga import GeneticPsoOptimizer, PsoGenome, AccelerationCoefficientsGenome
 from data import load_data
 from utils import mean_squared_error
-from sequential import Sequential
-from linear import Linear
-from activations import ActivationReLU
+from functools import partial
+from model_builders import build_base_model
 
 class TrainManager:
     def __init__(self):
@@ -24,35 +23,30 @@ class TrainManager:
 
     def _initialize_ga(self):
         (train_features, train_targets), (test_features, test_targets) = load_data(path="../../data/concrete_data.csv")
-        self.evaluator = PsoEvaluator(
+        input_size = train_features.shape[1]
+        self.evaluator_config = dict(
             X=train_features.T,
             Y=train_targets,
             X_test=test_features.T,
             Y_test=test_targets,
-            base_model_builder=lambda genome: Sequential(
-                Linear(size_input=train_features.shape[1], size_hidden=32),
-                ActivationReLU(),
-                Linear(size_input=32, size_hidden=16),
-                ActivationReLU(),
-                Linear(size_input=16, size_hidden=1)
-            ),
+            base_model_builder=partial(build_base_model, input_size=input_size),
             loss_function=mean_squared_error,
-            max_train_seconds=15.0,
-            num_genome_repeats_per_iteration=5,
-            max_repeats_per_genome=50,
+            max_train_seconds=12.0,
+            num_genome_repeats_per_iteration=4,
+            max_repeats_per_genome=32,
             explosion_factor=100,
             accuracy_checks_every=20,
-            patience_window=15,
+            patience_window=10,
             verbose=False
         )
-        
+
         self.optimizer = GeneticPsoOptimizer(
-            evaluator=self.evaluator,
-            population_size=22,
-            generations=50,
+            evaluator_config=self.evaluator_config,
+            population_size=24,
+            generations=200,
             mutation_rate=0.2,
             crossover_rate=0.7,
-            elitism=8,
+            elitism=10,
             tournament_k=3,
             parallel=False
         )
@@ -148,6 +142,13 @@ class TrainManager:
             self._training_thread.join(timeout=1)  # Wait for thread to finish
             self._training_thread = None
             self.reset_progress()  # Reset progress after stopping
+            try:
+                import multiprocessing as mp
+                mp.active_children()
+                for p in mp.active_children():
+                    p.terminate()
+            except Exception:
+                pass
 
     def is_training(self):
         return self._training_thread is not None and self._training_thread.is_alive()

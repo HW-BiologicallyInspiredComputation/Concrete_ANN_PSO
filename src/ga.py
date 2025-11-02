@@ -5,8 +5,7 @@ from __future__ import annotations
 import time
 import copy
 import random
-import math
-from dataclasses import dataclass, field
+from dataclasses import dataclass
 from typing import Tuple, List, Optional, Callable, Any, Dict
 import numpy as np
 import multiprocessing as mp
@@ -15,6 +14,7 @@ from pso import ParticleSwarmOptimisation, AccelerationCoefficients
 from sequential import Sequential
 from linear import Linear
 from activations import ActivationReLU
+from concurrent.futures import ProcessPoolExecutor
 
 from data import load_data
 
@@ -129,7 +129,7 @@ class PsoEvaluator:
         Y: np.ndarray,
         X_test: np.ndarray,
         Y_test: np.ndarray,
-        base_model_builder: Callable[[PsoGenome], Any],
+        base_model_builder: Callable[[], Any],
         loss_function: Callable[[np.ndarray, np.ndarray], float],
         max_train_seconds: float = 10.0,
         patience_window: int = 20,
@@ -161,6 +161,11 @@ class PsoEvaluator:
         
         self.cache: Dict[str, Dict[str, Any]] = {}
 
+    @staticmethod
+    def create_and_eval(config, genome):
+        evaluator = PsoEvaluator(**config)
+        return evaluator.evaluate(genome)
+
     def evaluate(self, genome: PsoGenome) -> float:
         """
         Returns scalar fitness. Lower is better.
@@ -174,7 +179,7 @@ class PsoEvaluator:
             return self.cache[key]['acc']
 
         # build model
-        model = self.base_model_builder(genome)
+        model = self.base_model_builder()
 
         # build PSO with the genome's params
         accel = genome.accel
@@ -272,7 +277,7 @@ class GeneticIndividual:
 class GeneticPsoOptimizer:
     def __init__(
         self,
-        evaluator: PsoEvaluator,
+        evaluator_config: dict,
         population_size: int = 20,
         generations: int = 30,
         mutation_rate: float = 0.1,
@@ -281,7 +286,7 @@ class GeneticPsoOptimizer:
         tournament_k: int = 3,
         parallel: bool = True,
     ):
-        self.evaluator = evaluator
+        self.evaluator_config = evaluator_config
         self.population_size = population_size
         self.generations = generations
         self.mutation_rate = mutation_rate
@@ -295,16 +300,23 @@ class GeneticPsoOptimizer:
         self.population = [GeneticIndividual(seed_genome_factory()) for _ in range(self.population_size)]
 
     def evaluate_population(self):
-        # Evaluate all individuals (optionally in parallel)
+        genomes = [ind.genome for ind in self.population]
+
         if self.parallel:
-            with mp.Pool(max(1, mp.cpu_count() - 1)) as pool:
-                genomes = [ind.genome for ind in self.population]
-                results = pool.map(self.evaluator.evaluate, genomes)
-            for ind, f in zip(self.population, results):
-                ind.accuracy = f
+            with ProcessPoolExecutor(max_workers=max(1, mp.cpu_count() - 1)) as executor:
+                results = list(executor.map(
+                    PsoEvaluator.create_and_eval,
+                    [self.evaluator_config] * len(genomes),
+                    genomes
+                ))
+
+            for ind, score in zip(self.population, results):
+                ind.accuracy = score
+
         else:
+            evaluator = PsoEvaluator(**self.evaluator_config)
             for ind in self.population:
-                ind.accuracy = self.evaluator.evaluate(ind.genome)
+                ind.accuracy = evaluator.evaluate(ind.genome)
 
     def tournament_select(self) -> PsoGenome:
         contenders = random.sample(self.population, self.tournament_k)
