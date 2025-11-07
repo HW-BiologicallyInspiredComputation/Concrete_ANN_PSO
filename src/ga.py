@@ -23,6 +23,7 @@ from data import load_data
 
 # --- Genome definition -----------------------------------------------------
 
+
 @dataclass
 class AccelerationCoefficientsGenome:
     inertia_weight: float
@@ -45,12 +46,15 @@ class AccelerationCoefficientsGenome:
                 setattr(self, name, float(np.clip(new, lo, hi)))
 
     @staticmethod
-    def crossover(a: 'AccelerationCoefficientsGenome', b: 'AccelerationCoefficientsGenome') -> 'AccelerationCoefficientsGenome':
+    def crossover(
+        a: "AccelerationCoefficientsGenome", b: "AccelerationCoefficientsGenome"
+    ) -> "AccelerationCoefficientsGenome":
         # uniform crossover
         out = {}
         for name in vars(a):
             out[name] = getattr(a, name) if random.random() < 0.5 else getattr(b, name)
         return AccelerationCoefficientsGenome(**out)
+
 
 @dataclass
 class PsoGenome:
@@ -64,23 +68,45 @@ class PsoGenome:
     # keep a pointer/identifier to the loss function if desired (not serializable)
     # loss_function: Callable = field(default=None, repr=False)
 
-    def copy(self) -> 'PsoGenome':
+    def copy(self) -> "PsoGenome":
         return copy.deepcopy(self)
 
     def mutate(self, mutation_rate: float, bounds: dict):
         # mutate swarm size (discrete), num_informants (discrete), scales and accel
         if random.random() < mutation_rate:
-            self.swarm_size = int(np.clip(self.swarm_size + random.randint(-4, 4), bounds['swarm_size'][0], bounds['swarm_size'][1]))
+            self.swarm_size = int(
+                np.clip(
+                    self.swarm_size + random.randint(-4, 4),
+                    bounds["swarm_size"][0],
+                    bounds["swarm_size"][1],
+                )
+            )
         if random.random() < mutation_rate:
-            self.num_informants = int(np.clip(self.num_informants + random.randint(-2, 2), 1, max(1, self.swarm_size - 1)))
+            self.num_informants = int(
+                np.clip(
+                    self.num_informants + random.randint(-2, 2),
+                    1,
+                    max(1, self.swarm_size - 1),
+                )
+            )
         if random.random() < mutation_rate:
             s0, s1 = self.particle_initial_position_scale
-            s0 += random.gauss(0, (bounds['position_scale'][1] - bounds['position_scale'][0]) * 0.05)
-            s1 += random.gauss(0, (bounds['bias_scale'][1] - bounds['bias_scale'][0]) * 0.05)
-            self.particle_initial_position_scale = (float(np.clip(s0, bounds['position_scale'][0], bounds['position_scale'][1])),
-                                                   float(np.clip(s1, bounds['bias_scale'][0], bounds['bias_scale'][1])))
+            s0 += random.gauss(
+                0, (bounds["position_scale"][1] - bounds["position_scale"][0]) * 0.05
+            )
+            s1 += random.gauss(
+                0, (bounds["bias_scale"][1] - bounds["bias_scale"][0]) * 0.05
+            )
+            self.particle_initial_position_scale = (
+                float(
+                    np.clip(
+                        s0, bounds["position_scale"][0], bounds["position_scale"][1]
+                    )
+                ),
+                float(np.clip(s1, bounds["bias_scale"][0], bounds["bias_scale"][1])),
+            )
         # mutate acceleration coeffs
-        self.accel.mutate(mutation_rate, bounds['accel_ranges'])
+        self.accel.mutate(mutation_rate, bounds["accel_ranges"])
         # mutate architecture (small chance)
         if self.ann_layers is not None and random.random() < mutation_rate:
             layers = list(self.ann_layers)
@@ -95,18 +121,28 @@ class PsoGenome:
                 else:
                     # add a small layer
                     if len(layers) < 3:
-                        insert_at = random.randrange(len(layers)+1)
+                        insert_at = random.randrange(len(layers) + 1)
                         layers.insert(insert_at, random.randint(1, 32))
             self.ann_layers = tuple(layers)
 
     @staticmethod
-    def crossover(a: 'PsoGenome', b: 'PsoGenome', crossover_rate: float = 0.5) -> 'PsoGenome':
+    def crossover(
+        a: "PsoGenome", b: "PsoGenome", crossover_rate: float = 0.5
+    ) -> "PsoGenome":
         # single-point for architecture, uniform for many numeric
         child = a.copy()
         # swarm size: average with some chance
-        child.swarm_size = int((a.swarm_size if random.random() < 0.5 else b.swarm_size))
-        child.num_informants = int((a.num_informants if random.random() < 0.5 else b.num_informants))
-        child.particle_initial_position_scale = (a.particle_initial_position_scale if random.random() < 0.5 else b.particle_initial_position_scale)
+        child.swarm_size = int(
+            (a.swarm_size if random.random() < 0.5 else b.swarm_size)
+        )
+        child.num_informants = int(
+            (a.num_informants if random.random() < 0.5 else b.num_informants)
+        )
+        child.particle_initial_position_scale = (
+            a.particle_initial_position_scale
+            if random.random() < 0.5
+            else b.particle_initial_position_scale
+        )
         child.accel = AccelerationCoefficientsGenome.crossover(a.accel, b.accel)
         # architecture crossover (if both defined)
         if a.ann_layers and b.ann_layers:
@@ -120,7 +156,9 @@ class PsoGenome:
             child.ann_layers = a.ann_layers or b.ann_layers
         return child
 
+
 # --- Evaluator -------------------------------------------------------------
+
 
 class PsoEvaluator:
     def __init__(
@@ -137,7 +175,7 @@ class PsoEvaluator:
         max_repeats_per_genome: int = 30,
         explosion_factor: float = 1e6,
         accuracy_checks_every: int = 10,
-        verbose: bool = False
+        verbose: bool = False,
     ):
         """
         base_model_builder: function(genome)->model where model implements the interface expected by ParticleSwarmOptimisation:
@@ -158,7 +196,7 @@ class PsoEvaluator:
         self.explosion_factor = explosion_factor
         self.accuracy_checks_every = accuracy_checks_every
         self.verbose = verbose
-        
+
         self.cache: Dict[str, Dict[str, Any]] = {}
 
     @staticmethod
@@ -175,8 +213,11 @@ class PsoEvaluator:
          - explosion detection (penalise)
         """
         key = str(genome)
-        if key in self.cache and self.cache[key]['repeats'] >= self.max_repeats_per_genome:
-            return self.cache[key]['acc']
+        if (
+            key in self.cache
+            and self.cache[key]["repeats"] >= self.max_repeats_per_genome
+        ):
+            return self.cache[key]["acc"]
 
         # build model
         model = self.base_model_builder()
@@ -190,20 +231,23 @@ class PsoEvaluator:
             global_best_weight=accel.global_best_weight,
             jump_size=accel.jump_size,
             max_velocity=accel.max_velocity,
-            max_position=accel.max_position
+            max_position=accel.max_position,
         )
-        
+
         accuracies = []
-        
+
         for _ in range(self.num_genome_repeats_per_iteration):
             pso = ParticleSwarmOptimisation(
-                X=self.X, Y=self.Y,
+                X=self.X,
+                Y=self.Y,
                 swarm_size=genome.swarm_size,
                 accel_coeff=accel_obj,
-                num_informants=max(1, min(genome.num_informants, genome.swarm_size - 1)),
+                num_informants=max(
+                    1, min(genome.num_informants, genome.swarm_size - 1)
+                ),
                 loss_function=self.loss_function,
                 particle_initial_position_scale=genome.particle_initial_position_scale,
-                model=model
+                model=model,
             )
 
             start_time = time.time()
@@ -211,7 +255,7 @@ class PsoEvaluator:
             try:
                 epoch = 0
                 # replace PSO.train loop with a time-aware training
-                pso.update_informants()
+                pso.update_informants_random()
                 # compute an initial loss to detect explosion (if available)
                 # We'll compute first fitness properly
                 initial_fitness = pso.update_best_global()
@@ -239,7 +283,7 @@ class PsoEvaluator:
                     # early stopping: check last window
                     if len(last_losses) > self.patience_window:
                         # consider improvement if best decreased at least once in window
-                        window = last_losses[-self.patience_window:]
+                        window = last_losses[-self.patience_window :]
                         if max(window) < window[0]:  # no improvement
                             if self.verbose:
                                 print(f"[eval] early stopping at epoch {epoch}")
@@ -249,30 +293,38 @@ class PsoEvaluator:
                 # normal return: the best found
                 acc = pso.get_accuracy(self.X, self.Y)
                 if self.verbose:
-                    print(f"[eval] completed training epochs: {epoch}, accuracy: {acc:.6g}")
+                    print(
+                        f"[eval] completed training epochs: {epoch}, accuracy: {acc:.6g}"
+                    )
                 accuracies.append(acc)
             except Exception as e:
                 # crash in training -> penalize heavily
                 if self.verbose:
                     print("[eval] Exception during PSO eval:", e)
                 accuracies.append(0.0)
-            
+
         if key in self.cache:
-            self.cache[key]['repeats'] += self.num_genome_repeats_per_iteration
+            self.cache[key]["repeats"] += self.num_genome_repeats_per_iteration
         else:
-            self.cache[key] = {'repeats': self.num_genome_repeats_per_iteration, 'accuracies': []}
-        updated_accuracies = self.cache[key]['accuracies'] + accuracies
+            self.cache[key] = {
+                "repeats": self.num_genome_repeats_per_iteration,
+                "accuracies": [],
+            }
+        updated_accuracies = self.cache[key]["accuracies"] + accuracies
         mean_accuracy = np.mean(updated_accuracies)
-        self.cache[key]['acc'] = mean_accuracy
+        self.cache[key]["acc"] = mean_accuracy
 
         return mean_accuracy
 
+
 # --- Genetic algorithm ----------------------------------------------------
+
 
 @dataclass
 class GeneticIndividual:
     genome: PsoGenome
-    accuracy: float = float('inf')
+    accuracy: float = float("inf")
+
 
 class GeneticPsoOptimizer:
     def __init__(
@@ -297,18 +349,25 @@ class GeneticPsoOptimizer:
         self.population: List[GeneticIndividual] = []
 
     def initialize(self, seed_genome_factory: Callable[[], PsoGenome]):
-        self.population = [GeneticIndividual(seed_genome_factory()) for _ in range(self.population_size)]
+        self.population = [
+            GeneticIndividual(seed_genome_factory())
+            for _ in range(self.population_size)
+        ]
 
     def evaluate_population(self):
         genomes = [ind.genome for ind in self.population]
 
         if self.parallel:
-            with ProcessPoolExecutor(max_workers=max(1, mp.cpu_count() - 1)) as executor:
-                results = list(executor.map(
-                    PsoEvaluator.create_and_eval,
-                    [self.evaluator_config] * len(genomes),
-                    genomes
-                ))
+            with ProcessPoolExecutor(
+                max_workers=max(1, mp.cpu_count() - 1)
+            ) as executor:
+                results = list(
+                    executor.map(
+                        PsoEvaluator.create_and_eval,
+                        [self.evaluator_config] * len(genomes),
+                        genomes,
+                    )
+                )
 
             for ind, score in zip(self.population, results):
                 ind.accuracy = score
@@ -329,13 +388,17 @@ class GeneticPsoOptimizer:
         # elitism: carry best individuals
         sorted_pop = sorted(self.population, key=lambda ind: ind.accuracy, reverse=True)
         for i in range(self.elitism):
-            new_pop.append(GeneticIndividual(sorted_pop[i].genome.copy(), sorted_pop[i].accuracy))
+            new_pop.append(
+                GeneticIndividual(sorted_pop[i].genome.copy(), sorted_pop[i].accuracy)
+            )
         # fill rest
         while len(new_pop) < self.population_size:
             parent_a = self.tournament_select()
             if random.random() < self.crossover_rate:
                 parent_b = self.tournament_select()
-                child_genome = PsoGenome.crossover(parent_a, parent_b, crossover_rate=self.crossover_rate)
+                child_genome = PsoGenome.crossover(
+                    parent_a, parent_b, crossover_rate=self.crossover_rate
+                )
             else:
                 child_genome = parent_a.copy()
             child_genome.mutate(self.mutation_rate, bounds=self._bounds())
@@ -349,13 +412,19 @@ class GeneticPsoOptimizer:
         for g in range(self.generations):
             if verbose:
                 best = max(self.population, key=lambda ind: ind.accuracy)
-                avg_fitness = sum(ind.accuracy for ind in self.population) / len(self.population)
-                print(f"[GA] gen {g:02d} best {best.accuracy:.6g} avg {avg_fitness:.6g}")
+                avg_fitness = sum(ind.accuracy for ind in self.population) / len(
+                    self.population
+                )
+                print(
+                    f"[GA] gen {g:02d} best {best.accuracy:.6g} avg {avg_fitness:.6g}"
+                )
                 with open("ga_pso_log.csv", "a") as f:
                     f.write(f"{g},{best.accuracy},{avg_fitness}\n")
             self.step()
             self.evaluate_population()
-            best_history.append(min(self.population, key=lambda ind: ind.accuracy).accuracy)
+            best_history.append(
+                min(self.population, key=lambda ind: ind.accuracy).accuracy
+            )
         # final best
         best_ind = min(self.population, key=lambda ind: ind.accuracy)
         return best_ind, best_history
@@ -363,18 +432,18 @@ class GeneticPsoOptimizer:
     def _bounds(self):
         # central place for bounds used by mutate: feel free to expose
         return {
-            'swarm_size': (4, 200),
-            'position_scale': (1e-4, 1.0),
-            'bias_scale': (1e-8, 1.0), #TODO put on report, previous value was 1e-6
-            'accel_ranges': {
-                'inertia_weight': (0.0, 2.0),
-                'cognitive_weight': (0.0, 4.0),
-                'social_weight': (0.0, 4.0),
-                'global_best_weight': (0.0, 4.0),
-                'jump_size': (1e-4, 2.0),
-                'max_velocity': (1e-6, 10.0),
-                'max_position': (1e-3, 100.0),
-            }
+            "swarm_size": (4, 200),
+            "position_scale": (1e-4, 1.0),
+            "bias_scale": (1e-8, 1.0),  # TODO put on report, previous value was 1e-6
+            "accel_ranges": {
+                "inertia_weight": (0.0, 2.0),
+                "cognitive_weight": (0.0, 4.0),
+                "social_weight": (0.0, 4.0),
+                "global_best_weight": (0.0, 4.0),
+                "jump_size": (1e-4, 2.0),
+                "max_velocity": (1e-6, 10.0),
+                "max_position": (1e-3, 100.0),
+            },
         }
 
 
@@ -388,27 +457,44 @@ if __name__ == "__main__":
             Y=train_targets,
             base_model_builder=lambda genome: Sequential(
                 *(
-                    [Linear(size_input=train_features.shape[1], size_hidden=genome.ann_layers[0])] +
-                    sum(
-                        ([ActivationReLU(), Linear(size_input=genome.ann_layers[i], size_hidden=genome.ann_layers[i+1])]
-                        for i in range(len(genome.ann_layers)-1)),
-                        []
-                    ) +
-                    [ActivationReLU(), Linear(size_input=genome.ann_layers[-1], size_hidden=1)]
-                ) if genome.ann_layers else
-                [
+                    [
+                        Linear(
+                            size_input=train_features.shape[1],
+                            size_hidden=genome.ann_layers[0],
+                        )
+                    ]
+                    + sum(
+                        (
+                            [
+                                ActivationReLU(),
+                                Linear(
+                                    size_input=genome.ann_layers[i],
+                                    size_hidden=genome.ann_layers[i + 1],
+                                ),
+                            ]
+                            for i in range(len(genome.ann_layers) - 1)
+                        ),
+                        [],
+                    )
+                    + [
+                        ActivationReLU(),
+                        Linear(size_input=genome.ann_layers[-1], size_hidden=1),
+                    ]
+                )
+                if genome.ann_layers
+                else [
                     Linear(size_input=train_features.shape[1], size_hidden=32),
                     ActivationReLU(),
                     Linear(size_input=32, size_hidden=16),
                     ActivationReLU(),
-                    Linear(size_input=16, size_hidden=1)
+                    Linear(size_input=16, size_hidden=1),
                 ]
             ),
             loss_function=mean_squared_error,
             max_train_seconds=10.0,
             patience_window=10,
             explosion_factor=1e1,
-            verbose=False
+            verbose=False,
         ),
         population_size=20,
         generations=30,
@@ -416,7 +502,7 @@ if __name__ == "__main__":
         crossover_rate=0.7,
         elitism=5,
         tournament_k=3,
-        parallel=False
+        parallel=False,
     )
 
     optimizer.run(
@@ -429,14 +515,17 @@ if __name__ == "__main__":
                 global_best_weight=random.uniform(0.1, 1.0),
                 jump_size=random.uniform(0.01, 1.0),
                 max_velocity=random.uniform(0.001, 1.0),
-                max_position=random.uniform(0.1, 10.0)
+                max_position=random.uniform(0.1, 10.0),
             ),
             num_informants=random.randint(1, 10),
-            particle_initial_position_scale=(random.uniform(0.0001, 0.1), random.uniform(0.0001, 0.1)),
+            particle_initial_position_scale=(
+                random.uniform(0.0001, 0.1),
+                random.uniform(0.0001, 0.1),
+            ),
             ann_layers=(32, 16),
-            ann_activation="relu"
+            ann_activation="relu",
         ),
-        verbose=True
+        verbose=True,
     )
 
     # Save output to a file
@@ -445,5 +534,6 @@ if __name__ == "__main__":
         f.write(f"Best fitness: {best_individual.fitness}\n")
         f.write(f"Best genome: {best_individual.genome}\n")
     import pickle
+
     with open("genetic_pso_optimizer_result.pkl", "wb") as f:
         pickle.dump(optimizer, f)

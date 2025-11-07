@@ -1,5 +1,6 @@
 import numpy as np
 
+
 class Layer:
     def __init__(self):
         self.isVectorizable = False

@@ -3,6 +3,7 @@ from layer import Layer
 
 # create a layer class for the MLP
 
+
 class Linear(Layer):
     def __init__(self, size_input: int, size_hidden: int):
         """Initialize with weights and biases."""
@@ -34,8 +35,9 @@ class Linear(Layer):
 
     def from_vector(self, vector: np.ndarray) -> int:
         """Set weights and biases from a single vector."""
-        self.weights = vector[:self.weights.size].reshape(self.weights.shape)
-        self.bias = vector[self.weights.size:].reshape(self.bias.shape)
+        self.weights = vector[: self.weights.size].reshape(self.weights.shape)
+        self.bias = vector[self.weights.size :].reshape(self.bias.shape)
+
 
 if __name__ == "__main__":
     # Test the Linear class

@@ -11,6 +11,7 @@ from utils import mean_squared_error
 from data import load_data
 # Creation of AI class for training the MLP with our PSO
 
+
 @dataclass
 class AccelerationCoefficients:
     inertia_weight: float
@@ -21,8 +22,14 @@ class AccelerationCoefficients:
     max_velocity: float
     max_position: float
 
+
 class Particle:
-    def __init__(self, position: np.ndarray, accel_coeff: AccelerationCoefficients, fitness: float):
+    def __init__(
+        self,
+        position: np.ndarray,
+        accel_coeff: AccelerationCoefficients,
+        fitness: float,
+    ):
         self.accel_coeff = accel_coeff
         # Initialize other attributes like position, velocity, personal best, etc.
         self.position = position
@@ -51,25 +58,34 @@ class Particle:
             velocity_cognitive = b * (self.best_personal[i] - self.position[i])
             velocity_social = c * (best_informant[i] - self.position[i])
             velocity_global = d * (best_global[i] - self.position[i])
-            new_velocity = inertia + velocity_cognitive + velocity_social + velocity_global
-            self.velocity[i] = np.clip(new_velocity, -self.accel_coeff.max_velocity, self.accel_coeff.max_velocity)
+            new_velocity = (
+                inertia + velocity_cognitive + velocity_social + velocity_global
+            )
+            self.velocity[i] = np.clip(
+                new_velocity,
+                -self.accel_coeff.max_velocity,
+                self.accel_coeff.max_velocity,
+            )
 
     def update_position(self):
         self.position += self.velocity * self.accel_coeff.jump_size
-        self.position = np.clip(self.position, -self.accel_coeff.max_position, self.accel_coeff.max_position)
+        self.position = np.clip(
+            self.position, -self.accel_coeff.max_position, self.accel_coeff.max_position
+        )
+
 
 class ParticleSwarmOptimisation:
     def __init__(
-            self,
-            X: np.ndarray[tuple[int, int]],
-            Y: np.ndarray[tuple[int]],
-            swarm_size: int,
-            accel_coeff: AccelerationCoefficients,
-            num_informants: int,
-            loss_function,
-            particle_initial_position_scale: Tuple[float, float],
-            model: Sequential,
-        ):
+        self,
+        X: np.ndarray[tuple[int, int]],
+        Y: np.ndarray[tuple[int]],
+        swarm_size: int,
+        accel_coeff: AccelerationCoefficients,
+        num_informants: int,
+        loss_function,
+        particle_initial_position_scale: Tuple[float, float],
+        model: Sequential,
+    ):
         self.accel_coeff = accel_coeff
         self.swarm_size = swarm_size
         self.num_informants = num_informants
@@ -85,19 +101,30 @@ class ParticleSwarmOptimisation:
 
         self.population: List[Particle] = []
         for _ in range(swarm_size):
-            self.model.randomize(weight_scale=particle_initial_position_scale[0], bias_scale=particle_initial_position_scale[1])
+            self.model.randomize(
+                weight_scale=particle_initial_position_scale[0],
+                bias_scale=particle_initial_position_scale[1],
+            )
             particle_fitness = self.loss_function(self.Y, self.model.forward(self.X))
-            self.population.append(Particle(position=self.model.to_vector(), accel_coeff=accel_coeff, fitness=particle_fitness))
+            self.population.append(
+                Particle(
+                    position=self.model.to_vector(),
+                    accel_coeff=accel_coeff,
+                    fitness=particle_fitness,
+                )
+            )
 
         self.best_global: np.ndarray = self.population[0].position.copy()
         self.best_global_fitness: float = self.population[0].fittest
 
-    def update_informants(self):
+    def update_informants_random(self):
         if self.num_informants >= self.swarm_size:
             raise ValueError("Number of informants must be less than swarm size.")
         for particle in self.population:
             others = [p for p in self.population if p is not particle]
-            particle.informants = np.random.choice(others, size=self.num_informants, replace=False)
+            particle.informants = np.random.choice(
+                others, size=self.num_informants, replace=False
+            )
 
     def update_best_global(self):
         loss = 0.0
@@ -110,7 +137,10 @@ class ParticleSwarmOptimisation:
             if fitness < particle.fittest:
                 particle.best_personal = particle.position.copy()
                 particle.fittest = fitness
-                if self.best_global_fitness is None or fitness < self.best_global_fitness:
+                if (
+                    self.best_global_fitness is None
+                    or fitness < self.best_global_fitness
+                ):
                     self.best_global = particle.position.copy()
                     self.best_global_fitness = fitness
         return np.mean(fitnesses)
@@ -139,11 +169,7 @@ class ParticleSwarmOptimisation:
             self.losses.append(self.best_global_fitness)
             fig, ax = plt.subplots()
             ax.plot(self.losses, label="Loss")
-            ax.plot(
-                self.avg_fitnesses,
-                label="Average Fitness",
-                linestyle="--"
-            )
+            ax.plot(self.avg_fitnesses, label="Average Fitness", linestyle="--")
             ax.set_xlabel("Step")
             ax.set_ylabel("Loss")
             ax.set_title("Training Loss")
@@ -152,7 +178,7 @@ class ParticleSwarmOptimisation:
             clear_output(wait=True)
             display(fig)
             plt.close(fig)
-            
+
     def train_epoch(self):
         avg_fitness = self.update_best_global()
         self.update_velocities()
@@ -160,11 +186,12 @@ class ParticleSwarmOptimisation:
         return avg_fitness
 
     def train(self, epochs):
-        self.update_informants()
+        self.update_informants_random()
         for epoch in range(epochs):
             avg_fitness = self.train_epoch()
             self.plot(epoch, avg_fitness)
         return (self.best_global, self.best_global_fitness, self.losses)
+
 
 if __name__ == "__main__":
     (train_features, train_targets), (test_features, test_targets) = load_data()
@@ -188,14 +215,14 @@ if __name__ == "__main__":
     swarm_size = 30
     epochs = 100
     accel_coeff = AccelerationCoefficients(
-            inertia_weight=0.68,
-            cognitive_weight=2.80,
-            social_weight=0.88,
-            global_best_weight=0.96,
-            jump_size=0.6,
-            max_velocity=0.9,
-            max_position=3.87,
-        )
+        inertia_weight=0.68,
+        cognitive_weight=2.80,
+        social_weight=0.88,
+        global_best_weight=0.96,
+        jump_size=0.6,
+        max_velocity=0.9,
+        max_position=3.87,
+    )
     num_informants = 4
     particle_initial_position_scale = (0.0001, 0.087)
     loss_function = mean_squared_error
@@ -209,7 +236,7 @@ if __name__ == "__main__":
         num_informants=num_informants,
         loss_function=loss_function,
         particle_initial_position_scale=particle_initial_position_scale,
-        model=mlp
+        model=mlp,
     )
 
     (final_position, final_score, losses) = pso.train()
@@ -222,7 +249,12 @@ if __name__ == "__main__":
     plt.xlabel("True Values")
     plt.ylabel("Predictions")
     plt.title("Predictions vs True Values")
-    plt.plot([test_targets.min(), test_targets.max()], [test_targets.min(), test_targets.max()], 'k--', lw=2)
+    plt.plot(
+        [test_targets.min(), test_targets.max()],
+        [test_targets.min(), test_targets.max()],
+        "k--",
+        lw=2,
+    )
     plt.show()
 
     plt.plot(losses)

@@ -4,10 +4,13 @@ from layer import Layer
 from linear import Linear
 from activations import ActivationReLU, ActivationSigmoid
 
+
 class Sequential:
     def __init__(self, *layers: Layer, randomize: bool = True):
         self.layers = layers
-        self.vectorizable_layers: List[Linear] = [layer for layer in self.layers if layer.isVectorizable]
+        self.vectorizable_layers: List[Linear] = [
+            layer for layer in self.layers if layer.isVectorizable
+        ]
         self.vector_indexes = []
         index = 0
         for layer in self.vectorizable_layers:
@@ -40,7 +43,8 @@ class Sequential:
         for i in range(len(self.vectorizable_layers)):
             start_idx, end_idx = self.vector_indexes[i]
             self.vectorizable_layers[i].from_vector(param_vector[start_idx:end_idx])
-            
+
+
 if __name__ == "__main__":
     # Test the Sequential class
 
@@ -49,7 +53,7 @@ if __name__ == "__main__":
         ActivationReLU(),
         Linear(size_input=3, size_hidden=4),
         ActivationSigmoid(),
-        Linear(size_input=4, size_hidden=1)
+        Linear(size_input=4, size_hidden=1),
     )
     X_sample = np.random.randn(1, 5).T
     output = mlp.forward(X_sample)
