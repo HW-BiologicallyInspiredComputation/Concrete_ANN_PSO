@@ -31,9 +31,9 @@ class TrainManager:
             Y_test=test_targets,
             base_model_builder=partial(build_base_model, input_size=input_size),
             loss_function=mean_squared_error,
-            max_train_seconds=12.0,
-            num_genome_repeats_per_iteration=4,
-            max_repeats_per_genome=32,
+            max_train_seconds=60.0,
+            num_genome_repeats_per_iteration=3,
+            max_repeats_per_genome=21,
             explosion_factor=100,
             accuracy_checks_every=20,
             patience_window=10,
@@ -42,11 +42,11 @@ class TrainManager:
 
         self.optimizer = GeneticPsoOptimizer(
             evaluator_config=self.evaluator_config,
-            population_size=24,
+            population_size=15,
             generations=200,
             mutation_rate=0.2,
-            crossover_rate=0.7,
-            elitism=10,
+            crossover_rate=0.6,
+            elitism=2,
             tournament_k=3,
             parallel=False
         )

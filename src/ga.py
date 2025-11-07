@@ -94,8 +94,9 @@ class PsoGenome:
                     layers.pop(random.randrange(len(layers)))
                 else:
                     # add a small layer
-                    insert_at = random.randrange(len(layers)+1)
-                    layers.insert(insert_at, random.randint(1, 32))
+                    if len(layers) < 3:
+                        insert_at = random.randrange(len(layers)+1)
+                        layers.insert(insert_at, random.randint(1, 32))
             self.ann_layers = tuple(layers)
 
     @staticmethod
@@ -112,9 +113,8 @@ class PsoGenome:
             if random.random() < crossover_rate:
                 # one-point crossover on layer lists
                 la, lb = list(a.ann_layers), list(b.ann_layers)
-                cut_a = random.randrange(len(la))
-                cut_b = random.randrange(len(lb))
-                new_layers = tuple(la[:cut_a] + lb[cut_b:])
+                cut = random.randrange(len(la))
+                new_layers = tuple(la[:cut] + lb[cut:])
                 child.ann_layers = new_layers
         else:
             child.ann_layers = a.ann_layers or b.ann_layers
@@ -234,7 +234,7 @@ class PsoEvaluator:
                         break
 
                     if epoch % self.accuracy_checks_every == 0:
-                        acc = pso.get_accuracy(self.X_test, self.Y_test)
+                        acc = pso.get_accuracy(self.X, self.Y)
                         accuracies.append(acc)
                     # early stopping: check last window
                     if len(last_losses) > self.patience_window:
@@ -243,11 +243,11 @@ class PsoEvaluator:
                         if max(window) < window[0]:  # no improvement
                             if self.verbose:
                                 print(f"[eval] early stopping at epoch {epoch}")
-                            accuracies.append(pso.get_accuracy(self.X_test, self.Y_test))
+                            accuracies.append(pso.get_accuracy(self.X, self.Y))
                             break
                     epoch += 1
                 # normal return: the best found
-                acc = pso.get_accuracy(self.X_test, self.Y_test)
+                acc = pso.get_accuracy(self.X, self.Y)
                 if self.verbose:
                     print(f"[eval] completed training epochs: {epoch}, accuracy: {acc:.6g}")
                 accuracies.append(acc)
@@ -365,7 +365,7 @@ class GeneticPsoOptimizer:
         return {
             'swarm_size': (4, 200),
             'position_scale': (1e-4, 1.0),
-            'bias_scale': (1e-6, 1.0),
+            'bias_scale': (1e-8, 1.0), #TODO put on report, previous value was 1e-6
             'accel_ranges': {
                 'inertia_weight': (0.0, 2.0),
                 'cognitive_weight': (0.0, 4.0),

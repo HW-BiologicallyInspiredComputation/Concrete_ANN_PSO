@@ -22,38 +22,39 @@ Authors: Antoine and Arne
 
 ### Dataset
 
-- using crossvalidation to evaluate model performance
-- using a validation dataset
-- make output proportional by dividing by max value of target in training set
+- ~~[ ] using crossvalidation to evaluate model performance~~
+- ~~[ ] using a validation dataset~~
+- [-] make output proportional by dividing by max value of target in training set
 
 ### PSO
 
-- change the activation function
-- change the topology of the input ANN (number of layers, number of neurons per layer)
+- ~~[ ] change the activation function~~
+- [x] change the topology of the input ANN (number of layers, number of neurons per layer)
 
 ### Error evaluation
 
-- implement other error metrics (MSE, RMSE, R2)
+- [-] implement other error metrics (MSE, RMSE, R2)
 
 ### Informants selection
-- implement different informants selection strategies (radius-based, k-nearest neighbors, random every iteration)
+- [-] implement different informants selection strategies (radius-based, **k-nearest neighbors**, random every iteration)
 
 ### ANN Backpropagation
-- implement backpropagation training to train further the best MLP found by PSO
+- ~~[ ] implement backpropagation training to train further the best MLP found by PSO~~
 
 ### Sequential Model
+
+- [x] implement Sequential model to have variable number of layers and neurons and activation functions
 
 ### Same velocity as position to explore far
 
 ### Clip velocity and position
-- bounce back at the boundaries
-- reset position/velocity when out of bounds
+- ~~[] bounce back at the boundaries~~
+- [x] reset position/velocity when out of bounds
 
 ### Accuracy
 
-### Genetic Algorithm
-- Limit training with an amount of time instead of epochs
-- Don't overtrain, stop training if the loss has not decreased for 20 epochs
+- [x] implement accuracy metric for regression
 
-parameters:
-- swarm_size
+### Genetic Algorithm
+- [x] Limit training with an amount of time instead of epochs
+- [x] Don't overtrain, stop training if the loss has not decreased for 20 epochs
