@@ -126,6 +126,18 @@ class ParticleSwarmOptimisation:
                 others, size=self.num_informants, replace=False
             )
 
+    def update_informants_nearest(self):
+        if self.num_informants >= self.swarm_size:
+            raise ValueError("Number of informants must be less than swarm size.")
+        for particle in self.population:
+            distances = []
+            for other in self.population:
+                if other is not particle:
+                    dist = np.linalg.norm(particle.position - other.position)
+                    distances.append((dist, other))
+            distances.sort(key=lambda x: x[0])
+            particle.informants = [distances[i][1] for i in range(self.num_informants)]
+
     def update_best_global(self):
         loss = 0.0
         fitnesses = []
@@ -188,6 +200,7 @@ class ParticleSwarmOptimisation:
     def train(self, epochs):
         self.update_informants_random()
         for epoch in range(epochs):
+            # self.update_informants_nearest()
             avg_fitness = self.train_epoch()
             self.plot(epoch, avg_fitness)
         return (self.best_global, self.best_global_fitness, self.losses)
@@ -231,7 +244,6 @@ if __name__ == "__main__":
         X=train_features.T,
         Y=train_targets,
         swarm_size=swarm_size,
-        epochs=epochs,
         accel_coeff=accel_coeff,
         num_informants=num_informants,
         loss_function=loss_function,
@@ -239,7 +251,7 @@ if __name__ == "__main__":
         model=mlp,
     )
 
-    (final_position, final_score, losses) = pso.train()
+    (final_position, final_score, losses) = pso.train(epochs)
     print(f"Final particle fitness: {final_score}")
     print(f"Final particle position sample: {final_position[:5]}")
     mlp.from_vector(final_position)

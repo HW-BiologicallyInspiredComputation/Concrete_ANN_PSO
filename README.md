@@ -24,7 +24,7 @@ Authors: Antoine and Arne
 
 - ~~[ ] using crossvalidation to evaluate model performance~~
 - ~~[ ] using a validation dataset~~
-- [-] make output proportional by dividing by max value of target in training set
+- [x] make output proportional by dividing by max value of target in training set
 
 ### PSO
 
@@ -33,10 +33,10 @@ Authors: Antoine and Arne
 
 ### Error evaluation
 
-- [-] implement other error metrics (MSE, RMSE, R2)
+- [x] implement other error metrics (MSE, RMSE, R2)
 
 ### Informants selection
-- [-] implement different informants selection strategies (radius-based, **k-nearest neighbors**, random every iteration)
+- [x] implement different informants selection strategies (radius-based, **k-nearest neighbors**, random every iteration)
 
 ### ANN Backpropagation
 - ~~[ ] implement backpropagation training to train further the best MLP found by PSO~~
@@ -58,3 +58,9 @@ Authors: Antoine and Arne
 ### Genetic Algorithm
 - [x] Limit training with an amount of time instead of epochs
 - [x] Don't overtrain, stop training if the loss has not decreased for 20 epochs
+
+
+### Graphs
+- [ ] plot fitness over hyperparameters (number of particles, inertia weight, cognitive and social coefficients, number of informants, topology)
+- [ ] plot two hyperparameters to compare them:  eg. plot cognitive over social with point size for fitnesses
+- [ ] 

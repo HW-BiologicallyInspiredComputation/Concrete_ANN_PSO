@@ -20,6 +20,11 @@ def load_data(path: str = "../data/concrete_data.csv"):
     ).to_numpy()
     test_features = test_df.drop(columns=[" concrete_compressive_strength"]).to_numpy()
 
+    # make output proportional by dividing by max value of target in training set
+    max_target_value = train_targets.max()
+    train_targets = train_targets / max_target_value
+    test_targets = test_targets / max_target_value
+
     return (train_features, train_targets), (test_features, test_targets)
 
 
