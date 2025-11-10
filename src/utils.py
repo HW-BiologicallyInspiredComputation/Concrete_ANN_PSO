@@ -13,7 +13,7 @@ def mean_absolute_error(y_true: np.ndarray, y_pred: np.ndarray) -> float:
 def root_mean_squared_error(y_true: np.ndarray, y_pred: np.ndarray) -> float:
     return np.sqrt(mean_squared_error(y_true, y_pred))
 
-# R2
+# R2 Score
 def r2_score(y_true: np.ndarray, y_pred: np.ndarray) -> float:
     ss_res = np.sum((y_true - y_pred) ** 2)
     ss_tot = np.sum((y_true - np.mean(y_true)) ** 2)
@@ -25,3 +25,5 @@ if __name__ == "__main__":
 
     print("MSE:", mean_squared_error(y_true, y_pred))  # Expected: 0.375
     print("MAE:", mean_absolute_error(y_true, y_pred))  # Expected: 0.5
+    print("RMSE:", root_mean_squared_error(y_true, y_pred))  # Expected: 0.6124
+    print("R2 Score:", r2_score(y_true, y_pred))  # Expected: 0.9486

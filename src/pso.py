@@ -9,6 +9,7 @@ from linear import Linear
 from activations import ActivationReLU
 from utils import mean_squared_error
 from data import load_data
+
 # Creation of AI class for training the MLP with our PSO
 
 
@@ -24,14 +25,16 @@ class AccelerationCoefficients:
 
 
 class Particle:
+    """Class representing a particle in the swarm."""
     def __init__(
         self,
         position: np.ndarray,
         accel_coeff: AccelerationCoefficients,
         fitness: float,
     ):
+        """Initialize a particle with position, velocity, and acceleration coefficients.
+        But also with personal best position, fitness and informants."""
         self.accel_coeff = accel_coeff
-        # Initialize other attributes like position, velocity, personal best, etc.
         self.position = position
         self.velocity = np.random.randn(position.shape[0]) * 0.1
         self.fittest = fitness
@@ -40,6 +43,7 @@ class Particle:
         self.best_personal: np.ndarray = position.copy()
 
     def get_best_informant(self):
+        """Get the position of the best informant based on fitness."""
         informant_fittest = None
         best_informant = None
         for informant in self.informants:
@@ -49,6 +53,7 @@ class Particle:
         return best_informant.position
 
     def update_velocity(self, best_global):
+        """Update the velocity of the particle based on personal best, informants' best, and global best."""
         best_informant = self.get_best_informant()
         for i in range(len(self.position)):
             b = np.random.random() * self.accel_coeff.cognitive_weight
@@ -68,6 +73,8 @@ class Particle:
             )
 
     def update_position(self):
+        """Update the position of the particle based on its velocity.
+        Clip the position to be within the allowed range and avoid exploding positions."""
         self.position += self.velocity * self.accel_coeff.jump_size
         self.position = np.clip(
             self.position, -self.accel_coeff.max_position, self.accel_coeff.max_position
@@ -75,6 +82,7 @@ class Particle:
 
 
 class ParticleSwarmOptimisation:
+    """Class representing the Particle Swarm Optimization algorithm."""
     def __init__(
         self,
         X: np.ndarray[tuple[int, int]],
@@ -86,6 +94,8 @@ class ParticleSwarmOptimisation:
         particle_initial_position_scale: Tuple[float, float],
         model: Sequential,
     ):
+        """Initialize the PSO with data, swarm parameters, loss function, and model.
+        Also initializes the particle population."""
         self.accel_coeff = accel_coeff
         self.swarm_size = swarm_size
         self.num_informants = num_informants
@@ -118,6 +128,7 @@ class ParticleSwarmOptimisation:
         self.best_global_fitness: float = self.population[0].fittest
 
     def update_informants_random(self):
+        """Randomly assign informants to each particle."""
         if self.num_informants >= self.swarm_size:
             raise ValueError("Number of informants must be less than swarm size.")
         for particle in self.population:
@@ -127,6 +138,7 @@ class ParticleSwarmOptimisation:
             )
 
     def update_informants_nearest(self):
+        """Assign informants based on nearest particles in position space."""
         if self.num_informants >= self.swarm_size:
             raise ValueError("Number of informants must be less than swarm size.")
         for particle in self.population:
@@ -139,6 +151,8 @@ class ParticleSwarmOptimisation:
             particle.informants = [distances[i][1] for i in range(self.num_informants)]
 
     def update_best_global(self):
+        """Update the best global position and fitness based on the current population.
+        Also returns the average fitness of the population."""
         loss = 0.0
         fitnesses = []
         for particle in self.population:
@@ -168,14 +182,17 @@ class ParticleSwarmOptimisation:
         return accuracy
 
     def update_velocities(self):
+        """Update the velocities of all particles in the population."""
         for particle in self.population:
             particle.update_velocity(self.best_global)
 
     def update_positions(self):
+        """Update the positions of all particles in the population."""
         for particle in self.population:
             particle.update_position()
 
     def plot(self, epoch, avg_fitness):
+        """Plot the training loss and average fitness every 10 epochs."""
         if epoch % 10 == 0:
             self.avg_fitnesses.append(avg_fitness)
             self.losses.append(self.best_global_fitness)
@@ -192,12 +209,15 @@ class ParticleSwarmOptimisation:
             plt.close(fig)
 
     def train_epoch(self):
+        """Perform a single epoch of training."""
         avg_fitness = self.update_best_global()
         self.update_velocities()
         self.update_positions()
         return avg_fitness
 
     def train(self, epochs):
+        """Train the PSO for a given number of epochs.
+        For this, we can choose between random informants or nearest informants."""
         self.update_informants_random()
         for epoch in range(epochs):
             # self.update_informants_nearest()
@@ -277,19 +297,20 @@ if __name__ == "__main__":
     plt.show()
 
     # Accuracy
-    train_accuracy, test_accuracy = pso.get_accuracy(test_features.T, test_targets)
+    train_accuracy = pso.get_accuracy(train_features.T, train_targets)
+    test_accuracy = pso.get_accuracy(test_features.T, test_targets)
     print(f"Train Accuracy: {train_accuracy:.2f}%")
 
     print(f"Test Accuracy: {test_accuracy:.2f}%")
 
     print(f"""
-    Params:
-    model: MLP with layers {[type(layer).__name__ for layer in mlp.layers]}
-    swarm_size: {swarm_size}
-    epochs: {epochs}
-    accel_coeff: {accel_coeff}
-    num_informants: {num_informants}
-    loss_function: {loss_function.__name__}
+        Params:
+        model: MLP with layers {[type(layer).__name__ for layer in mlp.layers]}
+        swarm_size: {swarm_size}
+        epochs: {epochs}
+        accel_coeff: {accel_coeff}
+        num_informants: {num_informants}
+        loss_function: {loss_function.__name__}
     """)
 
     print("Final loss", losses[-1])

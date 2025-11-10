@@ -14,11 +14,11 @@ class Linear(Layer):
         self.isVectorizable = True
 
     def init_weights(self, weight_scale=0.1):
-        """Initialize weights."""
+        """Initialize weights with values from the standard normal distribution multiplied by weight_scale."""
         return np.random.randn(self.size_hidden, self.size_input) * weight_scale
 
     def init_biases(self, bias_scale=0.001):
-        """Initialize biases."""
+        """Initialize biases at bias_scale."""
         return np.full((self.size_hidden, 1), bias_scale)
 
     def randomize(self, weight_scale=0.1, bias_scale=0.001):
@@ -27,6 +27,7 @@ class Linear(Layer):
         self.bias = self.init_biases(bias_scale=bias_scale)
 
     def forward(self, X):
+        """Perform the forward pass: Y = WX + b."""
         return np.dot(self.weights, X) + self.bias
 
     def to_vector(self) -> np.ndarray:
@@ -50,19 +51,19 @@ if __name__ == "__main__":
     layer2.from_vector(vector)
 
     print(f"""
-bias:
-{layer.bias}
-weights:
-{layer.weights}
-input:
-{X_sample}
-output:
-{output}
+        bias:
+        {layer.bias}
+        weights:
+        {layer.weights}
+        input:
+        {X_sample}
+        output:
+        {output}
 
-vector:
-{vector}
-layer2 bias:
-{layer2.bias}
-layer2 weights:
-{layer2.weights}
+        vector:
+        {vector}
+        layer2 bias:
+        {layer2.bias}
+        layer2 weights:
+        {layer2.weights}
     """)
