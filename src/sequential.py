@@ -4,9 +4,12 @@ from layer import Layer
 from linear import Linear
 from activations import ActivationReLU, ActivationSigmoid
 
+# Define Sequential class for building neural network models
+# This enables stacking layers and managing parameters
 
 class Sequential:
     def __init__(self, *layers: Layer, randomize: bool = True):
+        """Initialize the Sequential model with given layers."""
         self.layers = layers
         self.vectorizable_layers: List[Linear] = [
             layer for layer in self.layers if layer.isVectorizable
@@ -22,10 +25,12 @@ class Sequential:
             self.randomize()
 
     def randomize(self, weight_scale=0.1, bias_scale=0.001):
+        """Randomize weights and biases of all layers."""
         for layer in self.layers:
             layer.randomize(weight_scale=weight_scale, bias_scale=bias_scale)
 
     def forward(self, X: np.ndarray) -> np.ndarray:
+        """Perform forward pass through all layers."""
         output = X
         for layer in self.layers:
             output = layer.forward(output)
@@ -47,6 +52,9 @@ class Sequential:
 
 if __name__ == "__main__":
     # Test the Sequential class
+
+    # Create a simple MLP model using Sequential
+    # Architecture: Input(5) -> Linear(3) -> ReLU -> Linear(4) -> Sigmoid -> Linear(1)
 
     mlp = Sequential(
         Linear(size_input=5, size_hidden=3),
@@ -70,11 +78,12 @@ vector:
 
     mlp.randomize()
     print(f"""
-    initial model2 output:
-    {mlp.forward(X_sample)}
+initial model2 output:
+{mlp.forward(X_sample)}
     """)
 
     mlp.from_vector(vector)
-    print(f"""model2 output after from_vector:
-    {mlp.forward(X_sample)}
+    print(f"""
+model2 output after from_vector:
+{mlp.forward(X_sample)}
         """)

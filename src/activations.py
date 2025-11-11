@@ -1,6 +1,7 @@
 import numpy as np
 from layer import Layer
 
+# Activation functions for the ANN
 
 class ActivationSigmoid(Layer):
     def forward(self, input_data: np.ndarray) -> np.ndarray:

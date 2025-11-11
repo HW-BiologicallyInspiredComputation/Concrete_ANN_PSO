@@ -10,8 +10,8 @@ from activations import ActivationReLU
 from utils import mean_squared_error
 from data import load_data
 
-# Creation of AI class for training the MLP with our PSO
 
+# Define acceleration coefficients for PSO
 
 @dataclass
 class AccelerationCoefficients:
@@ -23,6 +23,8 @@ class AccelerationCoefficients:
     max_velocity: float
     max_position: float
 
+
+# Define Particle class for PSO algorithm
 
 class Particle:
     """Class representing a particle in the swarm."""
@@ -80,6 +82,8 @@ class Particle:
             self.position, -self.accel_coeff.max_position, self.accel_coeff.max_position
         )
 
+
+# Define Particle Swarm Optimization class
 
 class ParticleSwarmOptimisation:
     """Class representing the Particle Swarm Optimization algorithm."""

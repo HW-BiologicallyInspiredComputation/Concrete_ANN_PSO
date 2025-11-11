@@ -3,7 +3,6 @@ from layer import Layer
 
 # create a layer class for the MLP
 
-
 class Linear(Layer):
     def __init__(self, size_input: int, size_hidden: int):
         """Initialize with weights and biases."""

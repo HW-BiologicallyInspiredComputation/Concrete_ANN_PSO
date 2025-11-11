@@ -1,5 +1,7 @@
 import numpy as np
 
+# Define evaluation metrics for evaluating model performance
+
 # MSE
 def mean_squared_error(y_true: np.ndarray, y_pred: np.ndarray) -> float:
     return np.mean((y_true - y_pred) ** 2)

@@ -1,7 +1,8 @@
 import pandas as pd
 
+# Function to load and preprocess the concrete data
 
-def load_data(path: str = "../data/concrete_data.csv"):
+def load_data(path: str = "./data/concrete_data.csv"):
     # Load the concrete data
     df = pd.read_csv(path)
 
@@ -21,6 +22,9 @@ def load_data(path: str = "../data/concrete_data.csv"):
     test_features = test_df.drop(columns=[" concrete_compressive_strength"]).to_numpy()
 
     # make output proportional by dividing by max value of target in training set
+    # We noticed that our predicted values from the first itaration were always way smaller than the actual values.
+    # This normalization step helps the model to predict values on a similar scale as the actual values
+    # This is important for model convergence and performance
     max_target_value = train_targets.max()
     train_targets = train_targets / max_target_value
     test_targets = test_targets / max_target_value
