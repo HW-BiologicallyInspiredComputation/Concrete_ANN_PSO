@@ -31,7 +31,7 @@ class TrainManager:
             Y_test=test_targets,
             base_model_builder=partial(build_base_model, input_size=input_size),
             loss_function=mean_squared_error,
-            max_train_seconds=60.0,
+            max_train_seconds=90.0,
             num_genome_repeats_per_iteration=3,
             max_repeats_per_genome=21,
             explosion_factor=100,
@@ -42,8 +42,8 @@ class TrainManager:
 
         self.optimizer = GeneticPsoOptimizer(
             evaluator_config=self.evaluator_config,
-            population_size=15,
-            generations=200,
+            population_size=12,
+            generations=100,
             mutation_rate=0.2,
             crossover_rate=0.6,
             elitism=2,
@@ -87,6 +87,7 @@ class TrainManager:
                 progress["epoch"] = gen + 1
                 progress["percent"] = int(((gen + 1) / self.optimizer.generations) * 100)
                 progress["best_fitness"] = best_ind.accuracy
+                progress["best_repeats"] = best_ind.accuracy_counts
                 progress["avg_fitness"] = avg_fitness
                 progress["elapsed_time"] = time.time() - start_time
                 progress["best_genome"] = best_ind.genome
@@ -119,6 +120,7 @@ class TrainManager:
             "epoch": 0,
             "percent": 0,
             "best_fitness": 0,
+            "best_repeats": 0,
             "avg_fitness": 0,
             "elapsed_time": 0,
             "ga_history": pd.DataFrame({

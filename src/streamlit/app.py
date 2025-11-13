@@ -39,6 +39,7 @@ with dashboard_left:
     st.progress(progress["percent"])
     st.metric("Current Generation", progress["epoch"])
     st.metric("Best Accuracy", f"{progress['best_fitness']:.4f}")
+    st.metric("Best Repeats", progress["best_repeats"])
     st.metric("Average Accuracy", f"{progress['avg_fitness']:.4f}")
     st.metric("Elapsed Time (s)", f"{progress['elapsed_time']:.1f}")
 

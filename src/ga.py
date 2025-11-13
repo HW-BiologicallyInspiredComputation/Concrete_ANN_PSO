@@ -198,14 +198,14 @@ class PsoEvaluator:
         self.accuracy_checks_every = accuracy_checks_every
         self.verbose = verbose
 
-        self.cache: Dict[str, Dict[str, Any]] = {}
+        self.cache: Dict[str, GeneticIndividual] = {}
 
     @staticmethod
     def create_and_eval(config, genome):
         evaluator = PsoEvaluator(**config)
         return evaluator.evaluate(genome)
 
-    def evaluate(self, genome: PsoGenome) -> float:
+    def evaluate(self, individual: GeneticIndividual) -> float:
         """
         Returns scalar fitness. Lower is better.
         Implements:
@@ -213,12 +213,17 @@ class PsoEvaluator:
          - early stopping on recent-window no-improvement (penalise)
          - explosion detection (penalise)
         """
+        
+        genome = individual.genome
+        
         key = str(genome)
         if (
             key in self.cache
-            and self.cache[key]["repeats"] >= self.max_repeats_per_genome
+            and self.cache[key].accuracy_counts >= self.max_repeats_per_genome
         ):
-            return self.cache[key]["acc"]
+            return self.cache[key]
+        else:
+            new_individual = GeneticIndividual(genome)
 
         # build model
         model = self.base_model_builder()
@@ -250,13 +255,12 @@ class PsoEvaluator:
                 particle_initial_position_scale=genome.particle_initial_position_scale,
                 model=model,
             )
-
             start_time = time.time()
             last_losses = []
             try:
                 epoch = 0
                 # replace PSO.train loop with a time-aware training
-                pso.update_informants_random()
+                # pso.update_informants_random()
                 # compute an initial loss to detect explosion (if available)
                 # We'll compute first fitness properly
                 initial_fitness = pso.update_best_global()
@@ -265,6 +269,7 @@ class PsoEvaluator:
                     if time.time() - start_time > self.max_train_seconds:
                         break
                     # iterate a small PSO step: velocities, positions, recompute bests
+                    pso.update_informants_nearest()
                     pso.update_velocities()
                     pso.update_positions()
                     avg_fitness = pso.update_best_global()
@@ -305,17 +310,16 @@ class PsoEvaluator:
                 accuracies.append(0.0)
 
         if key in self.cache:
-            self.cache[key]["repeats"] += self.num_genome_repeats_per_iteration
+            self.cache[key].accuracy_counts += self.num_genome_repeats_per_iteration
         else:
-            self.cache[key] = {
-                "repeats": self.num_genome_repeats_per_iteration,
-                "accuracies": [],
-            }
-        updated_accuracies = self.cache[key]["accuracies"] + accuracies
+            new_individual.accuracy_counts = self.num_genome_repeats_per_iteration
+            new_individual.accuracy_list = []
+            self.cache[key] = new_individual
+        updated_accuracies = self.cache[key].accuracy_list + accuracies
         mean_accuracy = np.mean(updated_accuracies)
-        self.cache[key]["acc"] = mean_accuracy
+        self.cache[key].accuracy = mean_accuracy
 
-        return mean_accuracy
+        return self.cache[key]
 
 
 # PSO Individual representation
@@ -324,6 +328,19 @@ class PsoEvaluator:
 class GeneticIndividual:
     genome: PsoGenome
     accuracy: float = float("inf")
+    accuracy_list: List[float] = None
+    accuracy_counts: int = 0
+
+    def __post_init__(self):
+        if self.accuracy_list is None:
+            self.accuracy_list = []
+
+    def __eq__(self, other):
+        if isinstance(other, GeneticIndividual):
+            return self.genome == other.genome
+        if isinstance(other, PsoGenome):
+            return self.genome == other
+        return False
 
 
 # Genetic Algorithm for PSO Hyperparameter Optimization
@@ -376,8 +393,7 @@ class GeneticPsoOptimizer:
 
         else:
             evaluator = PsoEvaluator(**self.evaluator_config)
-            for ind in self.population:
-                ind.accuracy = evaluator.evaluate(ind.genome)
+            self.population = [evaluator.evaluate(ind) for ind in self.population]
 
     def tournament_select(self) -> PsoGenome:
         contenders = random.sample(self.population, self.tournament_k)

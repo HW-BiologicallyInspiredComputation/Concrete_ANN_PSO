@@ -222,9 +222,9 @@ class ParticleSwarmOptimisation:
     def train(self, epochs):
         """Train the PSO for a given number of epochs.
         For this, we can choose between random informants or nearest informants."""
-        self.update_informants_random()
+        # self.update_informants_random()
         for epoch in range(epochs):
-            # self.update_informants_nearest()
+            self.update_informants_nearest()
             avg_fitness = self.train_epoch()
             self.plot(epoch, avg_fitness)
         return (self.best_global, self.best_global_fitness, self.losses)

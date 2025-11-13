@@ -16,6 +16,7 @@ class TrainingProgress(Base):
     epoch = Column(Integer, default=0)
     percent = Column(Integer, default=0)
     best_fitness = Column(Float, default=1.0)
+    best_repeats = Column(Integer, default=0)
     avg_fitness = Column(Float, default=0.0)
     elapsed_time = Column(Float, default=0.0)
     loss_history = Column(String, default="[]")  # store as JSON string
@@ -46,6 +47,7 @@ def save_progress(progress):
     record.epoch = progress["epoch"]
     record.percent = progress["percent"]
     record.best_fitness = progress["best_fitness"]
+    record.best_repeats = progress["best_repeats"]
     record.avg_fitness = progress["avg_fitness"]
     record.elapsed_time = progress["elapsed_time"]
     # convert DataFrames to JSON
@@ -81,6 +83,7 @@ def load_progress():
             "epoch": record.epoch,
             "percent": record.percent,
             "best_fitness": record.best_fitness,
+            "best_repeats": record.best_repeats,
             "avg_fitness": record.avg_fitness,
             "elapsed_time": record.elapsed_time,
             "loss_history": pd.read_json(StringIO(record.loss_history)) if record.loss_history else pd.DataFrame({"loss":[]}),
@@ -93,6 +96,7 @@ def load_progress():
             "epoch": 0,
             "percent": 0,
             "best_fitness": 1.0,
+            "best_repeats": 0,
             "avg_fitness": 0.0,
             "elapsed_time": 0,
             "loss_history": pd.DataFrame({"loss":[]}),
