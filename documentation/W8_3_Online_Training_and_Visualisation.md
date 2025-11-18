@@ -1,4 +1,4 @@
-# W8 - Part 2 - Online Training and Visualisation
+# W8 - Part 3 - Online Training and Visualisation
 
 Table of Contents
 
@@ -14,7 +14,7 @@ Table of Contents
 
 ## 1. Previously
 
-We have a functionning neural network, with a working PSO algorithm and a Genetic Algorithm to search for the best hyperparameters to give to the PSO.
+We have a functionning neural network, with a working PSO algorithm and a Genetic Algorithm to search for the best hyperparameters to give to the PSO. We also added a function to get our accuracy metric.
 
 Now that most of the implementation is done, we need to train a lot. In order to do so, we will implement an online training system, that will allow us to launch a training session 24/7 online and monitor the progress through a web interface. As we have never done this before and didn't learn it it class, but also this is far from the main focus of this project, we decided to keep it simple and use ChatGPT to help us with this part.
 
@@ -391,7 +391,7 @@ This code uses SQLAlchemy to create a SQLite database that stores the training p
 
 ### 2.4 The Web Interface
 
-![Web Interface](./img/W8_2_Web_Interface.png)
+![Web Interface](./img/W8_3_Web_Interface.png)
 
 The Web Interface is really simple and straightforward but gives us all the information we need to monitor the training process. We can see the current generation, best accuracy, average accuracy, and elapsed time. The line chart shows how the best and average accuracy evolve over generations. The best PSO hyperparameters found so far are displayed on the right side, allowing us to copy them easily for our experiments.
 

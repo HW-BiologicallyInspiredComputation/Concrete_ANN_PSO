@@ -1,6 +1,11 @@
+# Biologically Inspired Computation Coursework
+
 # Artificial Neural Network trained with Particle Swarm Optimization for compressive strength analysis of concrete
 
-Authors: Antoine and Arne
+## Group members
+
+1. Antoine ESMAN - @???? - H
+2. Arne JACOBS - @ArneMinem - H00508832
 
 ## Description
 
