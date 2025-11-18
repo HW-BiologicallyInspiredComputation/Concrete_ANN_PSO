@@ -2,6 +2,7 @@ import pandas as pd
 
 # Function to load and preprocess the concrete data
 
+
 def load_data(path: str = "./data/concrete_data.csv"):
     # Load the concrete data
     df = pd.read_csv(path)

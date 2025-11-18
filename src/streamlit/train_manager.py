@@ -1,5 +1,6 @@
 import sys
 import os
+
 sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
 import threading
@@ -13,6 +14,7 @@ from utils import mean_squared_error, InformantStrategy
 from functools import partial
 from model_builders import build_base_model
 
+
 class TrainManager:
     def __init__(self):
         self._lock = threading.Lock()
@@ -22,7 +24,9 @@ class TrainManager:
         self._initialize_ga()
 
     def _initialize_ga(self):
-        (train_features, train_targets), (test_features, test_targets) = load_data(path="../../data/concrete_data.csv")
+        (train_features, train_targets), (test_features, test_targets) = load_data(
+            path="../../data/concrete_data.csv"
+        )
         input_size = train_features.shape[1]
         self.evaluator_config = dict(
             X=train_features.T,
@@ -38,7 +42,7 @@ class TrainManager:
             explosion_factor=100,
             accuracy_checks_every=20,
             patience_window=10,
-            verbose=False
+            verbose=False,
         )
 
         self.optimizer = GeneticPsoOptimizer(
@@ -49,13 +53,13 @@ class TrainManager:
             crossover_rate=0.6,
             elitism=3,
             tournament_k=3,
-            parallel=False
+            parallel=False,
         )
 
     def _train_loop(self):
         start_time = time.time()
         progress = load_progress()
-        
+
         def seed_genome_factory():
             return PsoGenome(
                 swarm_size=random.randint(10, 50),
@@ -66,28 +70,35 @@ class TrainManager:
                     global_best_weight=random.uniform(0.1, 1.0),
                     jump_size=random.uniform(0.01, 1.0),
                     max_velocity=random.uniform(0.001, 1.0),
-                    max_position=random.uniform(0.1, 10.0)
+                    max_position=random.uniform(0.1, 10.0),
                 ),
                 num_informants=random.randint(1, 5),
-                particle_initial_position_scale=(random.uniform(0.0001, 0.1), random.uniform(0.0001, 0.1)),
-                ann_layers=[32, 16]
+                particle_initial_position_scale=(
+                    random.uniform(0.0001, 0.1),
+                    random.uniform(0.0001, 0.1),
+                ),
+                ann_layers=[32, 16],
             )
 
         self.optimizer.initialize(seed_genome_factory)
         print("Starting training loop...")
-        
+
         for gen in range(self.optimizer.generations):
             if self._stop_flag:
                 break
-                
+
             self.optimizer.evaluate_population()
             best_ind = max(self.optimizer.population, key=lambda ind: ind.accuracy)
             self._best_genome = best_ind.genome  # Store best genome
-            avg_fitness = sum(ind.accuracy for ind in self.optimizer.population) / len(self.optimizer.population)
+            avg_fitness = sum(ind.accuracy for ind in self.optimizer.population) / len(
+                self.optimizer.population
+            )
 
             with self._lock:
                 progress["epoch"] = gen + 1
-                progress["percent"] = int(((gen + 1) / self.optimizer.generations) * 100)
+                progress["percent"] = int(
+                    ((gen + 1) / self.optimizer.generations) * 100
+                )
                 progress["best_fitness"] = best_ind.accuracy
                 progress["best_repeats"] = best_ind.accuracy_counts
                 progress["avg_fitness"] = avg_fitness
@@ -96,21 +107,22 @@ class TrainManager:
                 progress["best_genome_timestamp"] = time.time()
 
                 # Create new history DataFrame
-                new_history = pd.DataFrame({
-                    "best_accuracy": [best_ind.accuracy],
-                    "avg_accuracy": [avg_fitness]
-                })
-                
+                new_history = pd.DataFrame(
+                    {
+                        "best_accuracy": [best_ind.accuracy],
+                        "avg_accuracy": [avg_fitness],
+                    }
+                )
+
                 if "ga_history" not in progress or progress["ga_history"].empty:
                     progress["ga_history"] = new_history
                 else:
                     progress["ga_history"] = pd.concat(
-                        [progress["ga_history"], new_history],
-                        ignore_index=True
+                        [progress["ga_history"], new_history], ignore_index=True
                     ).reset_index(drop=True)
-                
+
                 save_progress(progress)
-            
+
             self.optimizer.step()
 
         self._training_thread = None
@@ -125,11 +137,8 @@ class TrainManager:
             "best_repeats": 0,
             "avg_fitness": 0,
             "elapsed_time": 0,
-            "ga_history": pd.DataFrame({
-                "best_accuracy": [],
-                "avg_accuracy": []
-            }),
-            "loss_history": pd.DataFrame({"loss": []})
+            "ga_history": pd.DataFrame({"best_accuracy": [], "avg_accuracy": []}),
+            "loss_history": pd.DataFrame({"loss": []}),
         }
         save_progress(initial_progress)
 
@@ -137,7 +146,9 @@ class TrainManager:
         if not self.is_training():
             self.reset_progress()  # Reset progress before starting new training
             self._stop_flag = False
-            self._training_thread = threading.Thread(target=self._train_loop, daemon=True)
+            self._training_thread = threading.Thread(
+                target=self._train_loop, daemon=True
+            )
             self._training_thread.start()
 
     def stop_training(self):
@@ -148,6 +159,7 @@ class TrainManager:
             self.reset_progress()  # Reset progress after stopping
             try:
                 import multiprocessing as mp
+
                 mp.active_children()
                 for p in mp.active_children():
                     p.terminate()

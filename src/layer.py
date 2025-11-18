@@ -3,6 +3,7 @@ import numpy as np
 # Base class for neural network layers
 # Each specific layer type will inherit from this class
 
+
 class Layer:
     def __init__(self):
         self.isVectorizable = False

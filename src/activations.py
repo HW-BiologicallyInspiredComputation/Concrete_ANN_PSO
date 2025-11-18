@@ -3,6 +3,7 @@ from layer import Layer
 
 # Activation functions for the ANN
 
+
 class ActivationSigmoid(Layer):
     def forward(self, input_data: np.ndarray) -> np.ndarray:
         return 1 / (1 + np.exp(-input_data))

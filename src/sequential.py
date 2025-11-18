@@ -7,6 +7,7 @@ from activations import ActivationReLU, ActivationSigmoid
 # Define Sequential class for building neural network models
 # This enables stacking layers and managing parameters
 
+
 class Sequential:
     def __init__(self, *layers: Layer, randomize: bool = True):
         """Initialize the Sequential model with given layers."""

@@ -23,6 +23,7 @@ from data import load_data
 
 # Genome definition
 
+
 @dataclass
 class AccelerationCoefficientsGenome:
     inertia_weight: float
@@ -57,6 +58,7 @@ class AccelerationCoefficientsGenome:
 
 
 # PSO Genome definition
+
 
 @dataclass
 class PsoGenome:
@@ -161,6 +163,7 @@ class PsoGenome:
 
 # PSO Evaluator for Genetic Algorithm
 
+
 class PsoEvaluator:
     def __init__(
         self,
@@ -215,9 +218,9 @@ class PsoEvaluator:
          - early stopping on recent-window no-improvement (penalise)
          - explosion detection (penalise)
         """
-        
+
         genome = individual.genome
-        
+
         key = str(genome)
         if (
             key in self.cache
@@ -327,17 +330,20 @@ class PsoEvaluator:
         updated_accuracies = self.cache[key].accuracy_list
         mean_accuracy = np.mean(updated_accuracies)
         self.cache[key].accuracy = mean_accuracy
-        
+
         # print(self.cache[key].accuracy_list)
         print()
         print(mean_accuracy, accuracies)
         for key, value in self.cache.items():
-            print(f"-> Accuracy: {value.accuracy}, Counts: {value.accuracy_counts}, list: {value.accuracy_list}")
+            print(
+                f"-> Accuracy: {value.accuracy}, Counts: {value.accuracy_counts}, list: {value.accuracy_list}"
+            )
 
         return self.cache[key]
 
 
 # PSO Individual representation
+
 
 @dataclass
 class GeneticIndividual:
@@ -359,6 +365,7 @@ class GeneticIndividual:
 
 
 # Genetic Algorithm for PSO Hyperparameter Optimization
+
 
 class GeneticPsoOptimizer:
     def __init__(

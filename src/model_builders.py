@@ -4,6 +4,7 @@ from activations import ActivationReLU
 
 # Example model builder function
 
+
 def build_base_model(input_size):
     # genome is accepted (in case you use it later)
     return Sequential(

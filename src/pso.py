@@ -25,6 +25,7 @@ CAMERA_PERCENTILE = (
 
 # Define acceleration coefficients for PSO
 
+
 @dataclass
 class AccelerationCoefficients:
     inertia_weight: float
