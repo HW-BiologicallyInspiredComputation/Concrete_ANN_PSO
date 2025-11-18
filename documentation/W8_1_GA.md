@@ -2,6 +2,19 @@
 
 Table of Contents
 
+- [1. Integration of Genetic Algorithm (GA)](#1-integration-of-genetic-algorithm-ga)
+    - [1.1 Initial Code Snippet](#11-initial-code-snippet)
+    - [1.2 ChatGPT's Output](#12-chatgpts-output)
+    - [1.3 Final Implementation](#13-final-implementation)
+        - [1.3.1 AccelerationCoefficientsGenome](#131-accelerationcoefficientsgenome)
+        - [1.3.2 PsoGenome](#132-psogenome)
+        - [1.3.3 PsoEvaluator](#133-psoevaluator)
+        - [1.3.4 GeneticIndividual](#134-geneticindividual)
+        - [1.3.5 GeneticPsoOptimizer](#135-geneticpsooptimizer)
+- [2. Add Plot function to test GA's results](#2-add-plot-function-to-test-gas-results)
+- [3. Conclusion](#3-conclusion)
+- [4. Next Steps](#4-next-steps)
+
 
 ## 1. Integration of Genetic Algorithm (GA)
 
