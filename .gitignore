@@ -3,3 +3,7 @@
 __pycache__/
 *.db
 *_log.csv
+
+old_animated_pso.py
+.DS_Store
+*.mp4

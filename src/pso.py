@@ -3,6 +3,8 @@ from typing import List, Tuple
 from dataclasses import dataclass
 import matplotlib.pyplot as plt
 from IPython.display import clear_output, display
+from sklearn.decomposition import PCA
+import umap
 from utils import mean_absolute_error, InformantStrategy
 from sequential import Sequential
 from linear import Linear
@@ -10,6 +12,16 @@ from activations import ActivationReLU
 from utils import mean_squared_error
 from data import load_data
 
+# Creation of AI class for training the MLP with our PSO
+
+ANIMATION_STEPS = 20
+ANIMATION_INTERVAL = 50
+USE_CAMERA_FOLLOW = True
+CAMERA_ALWAYS_FOCUS = False
+SAVE_ANIMATION = True
+CAMERA_PERCENTILE = (
+    95  # Percentile of particles to include in camera view between 0 and 100
+)
 
 # Define acceleration coefficients for PSO
 
@@ -26,8 +38,10 @@ class AccelerationCoefficients:
 
 # Define Particle class for PSO algorithm
 
+
 class Particle:
     """Class representing a particle in the swarm."""
+
     def __init__(
         self,
         position: np.ndarray,
@@ -85,8 +99,10 @@ class Particle:
 
 # Define Particle Swarm Optimization class
 
+
 class ParticleSwarmOptimisation:
     """Class representing the Particle Swarm Optimization algorithm."""
+
     def __init__(
         self,
         X: np.ndarray[tuple[int, int]],
@@ -130,6 +146,31 @@ class ParticleSwarmOptimisation:
 
         self.best_global: np.ndarray = self.population[0].position.copy()
         self.best_global_fitness: float = self.population[0].fittest
+
+        self.pca = PCA(n_components=2)
+        # self.umap = umap.UMAP(n_components=2, n_neighbors=15, min_dist=0.1, metric='euclidean', random_state=42)
+
+        self.particle_positions_history = []
+        self.particle_fitness_history = []  # Add fitness history
+        self.cmap = plt.cm.viridis  # Add colormap for particles
+
+    def get_particle_positions(self):
+        positions = np.array([p.position for p in self.population])
+        return self.pca.fit_transform(positions)
+        # return self.umap.fit_transform(positions)
+
+    def get_camera_focus(self, positions_2d: np.ndarray, percentile: float = 50):
+        """Return the centroid and a zoom radius containing a given percentile of particles."""
+        # Centroid of particles
+        center = np.mean(positions_2d, axis=0)
+
+        # Distance of each particle to the center
+        dists = np.linalg.norm(positions_2d - center, axis=1)
+
+        # Radius that includes given percentile of particles
+        radius = np.percentile(dists, percentile)
+
+        return center, radius
 
     def update_informants_random(self):
         """Randomly assign informants to each particle."""
@@ -195,22 +236,120 @@ class ParticleSwarmOptimisation:
         for particle in self.population:
             particle.update_position()
 
-    def plot(self, epoch, avg_fitness):
-        """Plot the training loss and average fitness every 10 epochs."""
-        if epoch % 10 == 0:
-            self.avg_fitnesses.append(avg_fitness)
-            self.losses.append(self.best_global_fitness)
-            fig, ax = plt.subplots()
-            ax.plot(self.losses, label="Loss")
-            ax.plot(self.avg_fitnesses, label="Average Fitness", linestyle="--")
-            ax.set_xlabel("Step")
-            ax.set_ylabel("Loss")
-            ax.set_title("Training Loss")
-            ax.legend()
+    def get_fitness_colors(self, fitnesses=None):
+        # Get fitness values for all particles
+        if fitnesses is None:
+            fitnesses = np.array([p.fittest for p in self.population])
+        # Normalize fitness values between 0 and 1 (reversed so better fitness = darker color)
+        normalized = 1 - (fitnesses - fitnesses.min()) / (
+            fitnesses.max() - fitnesses.min() + 1e-10
+        )
+        return self.cmap(normalized)
 
-            clear_output(wait=True)
-            display(fig)
-            plt.close(fig)
+    def get_best_particle_index(self):
+        return min(
+            range(len(self.population)), key=lambda i: self.population[i].fittest
+        )
+
+    def plot(self, epoch, avg_fitness):
+        # if epoch % 2 == 0:
+        self.avg_fitnesses.append(avg_fitness)
+        self.losses.append(self.best_global_fitness)
+
+        # Create a figure with two subplots
+        fig, (ax1, ax2) = plt.subplots(1, 2, figsize=(15, 5))
+
+        # Plot losses
+        ax1.plot(self.losses, label="Loss")
+        ax1.plot(self.avg_fitnesses, label="Average Fitness", linestyle="--")
+        ax1.set_xlabel("Step")
+        ax1.set_ylabel("Loss")
+        ax1.set_title("Training Loss")
+        ax1.legend()
+
+        # Get current positions and colors
+        positions_2d = self.get_particle_positions()
+        current_fitnesses = np.array([p.fittest for p in self.population])
+        colors = self.get_fitness_colors(current_fitnesses)
+
+        # Plot particle positions
+        if self.particle_positions_history:
+            # Get previous positions in PCA space
+            prev_positions = self.particle_positions_history[-1]
+            prev_fitnesses = self.particle_fitness_history[-1]
+
+            # Interpolate positions and fitnesses between previous and current
+            for step in range(1, ANIMATION_STEPS + 1):
+                alpha = step / (ANIMATION_STEPS + 1)
+                interpolated_positions = prev_positions + alpha * (
+                    positions_2d - prev_positions
+                )
+                interpolated_fitnesses = prev_fitnesses + alpha * (
+                    current_fitnesses - prev_fitnesses
+                )
+                self.particle_positions_history.append(interpolated_positions)
+                self.particle_fitness_history.append(interpolated_fitnesses)
+        else:
+            # First epoch, just append initial positions and fitnesses
+            self.particle_positions_history.append(positions_2d)
+            self.particle_fitness_history.append(current_fitnesses)
+
+        scatter = ax2.scatter(
+            positions_2d[:, 0], positions_2d[:, 1], c=colors, alpha=0.6
+        )
+        for particle in self.population:
+            if not particle.informants:
+                continue
+            p_idx = self.population.index(particle)
+            p_pos = positions_2d[p_idx]
+            for informant in particle.informants:
+                i_idx = self.population.index(informant)
+                i_pos = positions_2d[i_idx]
+                ax2.plot(
+                    [p_pos[0], i_pos[0]],
+                    [p_pos[1], i_pos[1]],
+                    color="gray",
+                    alpha=0.2,
+                    linewidth=0.7,
+                    zorder=0,  # ensures lines stay behind points
+                )
+        ax2.set_xlabel("PC1")
+        ax2.set_ylabel("PC2")
+        ax2.set_title(f"Particle Positions (PCA) - Epoch {epoch // ANIMATION_STEPS}")
+
+        # Add global best position
+        best_pos = self.pca.transform(self.best_global.reshape(1, -1))
+        # best_pos = self.umap.transform(self.best_global.reshape(1, -1))
+        ax2.scatter(
+            best_pos[:, 0],
+            best_pos[:, 1],
+            c="red",
+            marker="*",
+            s=200,
+            label="Global Best",
+        )
+        # After plotting all particles, highlight best particle
+        best_particle_idx = self.get_best_particle_index()
+        best_particle_pos = positions_2d[best_particle_idx]
+        ax2.scatter(
+            best_particle_pos[0],
+            best_particle_pos[1],
+            c="yellow",
+            marker="o",
+            s=150,
+            edgecolor="black",
+            linewidth=1,
+            label="Best Particle",
+            zorder=3,  # Ensure it's drawn on top
+        )
+        ax2.legend()
+
+        # Add colorbar
+        plt.colorbar(scatter, ax=ax2, label="Fitness (darker is better)")
+
+        clear_output(wait=True)
+        display(fig)
+        plt.close(fig)
 
     def train_epoch(self):
         """Perform a single epoch of training."""
@@ -219,9 +358,7 @@ class ParticleSwarmOptimisation:
         self.update_positions()
         return avg_fitness
 
-    def train(self, epochs, informants_strategy=InformantStrategy.KNEAREST):
-        """Train the PSO for a given number of epochs.
-        For this, we can choose between random informants or nearest informants."""
+    def train(self, epochs, informants_strategy: InformantStrategy):
         if informants_strategy == InformantStrategy.RANDOM:
             self.update_informants_random()
         for epoch in range(epochs):
@@ -229,11 +366,122 @@ class ParticleSwarmOptimisation:
                 self.update_informants_nearest()
             avg_fitness = self.train_epoch()
             self.plot(epoch, avg_fitness)
+
+        # After training, create animation of particle movements
+        self.create_animation()
         return (self.best_global, self.best_global_fitness, self.losses)
+
+    def create_animation(self):
+        positions_history = np.array(self.particle_positions_history)
+        fitness_history = np.array(self.particle_fitness_history)
+
+        fig, ax = plt.subplots(figsize=(8, 8))
+        scatter = ax.scatter(
+            positions_history[0, :, 0],
+            positions_history[0, :, 1],
+            c=self.get_fitness_colors(fitness_history[0]),
+        )
+        # Add best particle highlight
+        best_particle_scatter = ax.scatter(
+            [],
+            [],
+            c="yellow",
+            marker="o",
+            s=150,
+            edgecolor="black",
+            linewidth=1,
+            label="Best Particle",
+            zorder=3,
+        )
+        lines = []
+        positions_2d = positions_history[0]
+        for particle in self.population:
+            if not particle.informants:
+                continue
+            p_idx = self.population.index(particle)
+            p_pos = positions_2d[p_idx]
+            for informant in particle.informants:
+                i_idx = self.population.index(informant)
+                i_pos = positions_2d[i_idx]
+                (line,) = ax.plot(
+                    [p_pos[0], i_pos[0]],
+                    [p_pos[1], i_pos[1]],
+                    color="gray",
+                    alpha=0.15,
+                    linewidth=0.7,
+                    zorder=0,
+                )
+                lines.append(line)
+        plt.colorbar(scatter, ax=ax, label="Fitness (brighter is better)")
+
+        ax.set_xlabel("PC1")
+        ax.set_ylabel("PC2")
+
+        def update(frame):
+            positions_2d = positions_history[frame]
+            colors = self.get_fitness_colors(fitness_history[frame])
+            scatter.set_offsets(positions_2d)
+            scatter.set_array(colors[:, 0])
+            ax.set_title(f"Particle Positions - Epoch {frame // ANIMATION_STEPS}")
+            # Update best particle position
+            best_idx = np.argmin(fitness_history[frame])
+            best_particle_scatter.set_offsets([positions_2d[best_idx]])
+
+            if USE_CAMERA_FOLLOW and (
+                CAMERA_ALWAYS_FOCUS or frame % ANIMATION_STEPS == 0
+            ):
+                # Adjust camera to follow majority of particles (50%)
+                center, radius = self.get_camera_focus(
+                    positions_2d, percentile=CAMERA_PERCENTILE
+                )
+                center = (0, 0)
+                # Smooth pan/zoom by setting axis limits
+                zoom_factor = 5  # more = looser framing
+                ax.set_xlim(
+                    center[0] - radius * zoom_factor, center[0] + radius * zoom_factor
+                )
+                ax.set_ylim(
+                    center[1] - radius * zoom_factor, center[1] + radius * zoom_factor
+                )
+
+            # Update informant lines
+            for line in lines:
+                line.remove()
+            lines.clear()
+            for particle in self.population:
+                if not particle.informants:
+                    continue
+                p_idx = self.population.index(particle)
+                p_pos = positions_2d[p_idx]
+                for informant in particle.informants:
+                    i_idx = self.population.index(informant)
+                    i_pos = positions_2d[i_idx]
+                    (line,) = ax.plot(
+                        [p_pos[0], i_pos[0]],
+                        [p_pos[1], i_pos[1]],
+                        color="gray",
+                        alpha=0.15,
+                        linewidth=0.7,
+                        zorder=0,
+                    )
+                    lines.append(line)
+
+            return (scatter, best_particle_scatter, *lines)
+
+        from matplotlib.animation import FuncAnimation
+
+        anim = FuncAnimation(
+            fig, update, frames=len(positions_history), interval=ANIMATION_INTERVAL
+        )
+        if SAVE_ANIMATION:
+            anim.save("particle_swarm_optimization.mp4", dpi=150)
+        plt.show()
 
 
 if __name__ == "__main__":
-    (train_features, train_targets), (test_features, test_targets) = load_data()
+    (train_features, train_targets), (test_features, test_targets) = load_data(
+        "../data/concrete_data.csv"
+    )
     mlp = Sequential(
         Linear(size_input=train_features.shape[1], size_hidden=12),
         ActivationReLU(),
@@ -251,18 +499,18 @@ if __name__ == "__main__":
     # plt.plot([test_targets.min(), test_targets.max()], [test_targets.min(), test_targets.max()], 'k--', lw=2)
     # plt.show()
 
-    swarm_size = 30
+    swarm_size = 50
     epochs = 100
     accel_coeff = AccelerationCoefficients(
         inertia_weight=0.68,
         cognitive_weight=2.80,
         social_weight=0.88,
         global_best_weight=0.96,
-        jump_size=0.6,
-        max_velocity=0.9,
-        max_position=3.87,
+        jump_size=0.4,
+        max_velocity=0.2,
+        max_position=2.87,
     )
-    num_informants = 4
+    num_informants = 3
     particle_initial_position_scale = (0.0001, 0.087)
     loss_function = mean_squared_error
     informants_strategy = InformantStrategy.KNEAREST
@@ -305,9 +553,8 @@ if __name__ == "__main__":
 
     # Accuracy
     train_accuracy = pso.get_accuracy(train_features.T, train_targets)
-    test_accuracy = pso.get_accuracy(test_features.T, test_targets)
     print(f"Train Accuracy: {train_accuracy:.2f}%")
-
+    test_accuracy = pso.get_accuracy(test_features.T, test_targets)
     print(f"Test Accuracy: {test_accuracy:.2f}%")
 
     print(f"""
