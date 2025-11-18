@@ -3,7 +3,7 @@ from typing import List, Tuple
 from dataclasses import dataclass
 import matplotlib.pyplot as plt
 from IPython.display import clear_output, display
-from utils import mean_absolute_error
+from utils import mean_absolute_error, InformantStrategy
 from sequential import Sequential
 from linear import Linear
 from activations import ActivationReLU
@@ -219,12 +219,14 @@ class ParticleSwarmOptimisation:
         self.update_positions()
         return avg_fitness
 
-    def train(self, epochs):
+    def train(self, epochs, informants_strategy=InformantStrategy.KNEAREST):
         """Train the PSO for a given number of epochs.
         For this, we can choose between random informants or nearest informants."""
-        # self.update_informants_random()
+        if informants_strategy == InformantStrategy.RANDOM:
+            self.update_informants_random()
         for epoch in range(epochs):
-            self.update_informants_nearest()
+            if informants_strategy == InformantStrategy.KNEAREST:
+                self.update_informants_nearest()
             avg_fitness = self.train_epoch()
             self.plot(epoch, avg_fitness)
         return (self.best_global, self.best_global_fitness, self.losses)
@@ -263,6 +265,7 @@ if __name__ == "__main__":
     num_informants = 4
     particle_initial_position_scale = (0.0001, 0.087)
     loss_function = mean_squared_error
+    informants_strategy = InformantStrategy.KNEAREST
 
     pso = ParticleSwarmOptimisation(
         X=train_features.T,
@@ -275,7 +278,7 @@ if __name__ == "__main__":
         model=mlp,
     )
 
-    (final_position, final_score, losses) = pso.train(epochs)
+    (final_position, final_score, losses) = pso.train(epochs, informants_strategy)
     print(f"Final particle fitness: {final_score}")
     print(f"Final particle position sample: {final_position[:5]}")
     mlp.from_vector(final_position)

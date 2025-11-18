@@ -1,4 +1,9 @@
 import numpy as np
+from enum import Enum
+
+class InformantStrategy(Enum):
+    RANDOM = 1
+    KNEAREST = 2
 
 # Define evaluation metrics for evaluating model performance
 

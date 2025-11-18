@@ -9,7 +9,7 @@ import pandas as pd
 from db import save_progress, load_progress
 from ga import GeneticPsoOptimizer, PsoGenome, AccelerationCoefficientsGenome
 from data import load_data
-from utils import mean_squared_error
+from utils import mean_squared_error, InformantStrategy
 from functools import partial
 from model_builders import build_base_model
 
@@ -31,7 +31,8 @@ class TrainManager:
             Y_test=test_targets,
             base_model_builder=partial(build_base_model, input_size=input_size),
             loss_function=mean_squared_error,
-            max_train_seconds=90.0,
+            informants_strategy=InformantStrategy.KNEAREST,
+            max_train_seconds=0.9,
             num_genome_repeats_per_iteration=3,
             max_repeats_per_genome=21,
             explosion_factor=100,
@@ -43,10 +44,10 @@ class TrainManager:
         self.optimizer = GeneticPsoOptimizer(
             evaluator_config=self.evaluator_config,
             population_size=12,
-            generations=100,
+            generations=50,
             mutation_rate=0.2,
             crossover_rate=0.6,
-            elitism=2,
+            elitism=3,
             tournament_k=3,
             parallel=False
         )
@@ -73,6 +74,7 @@ class TrainManager:
             )
 
         self.optimizer.initialize(seed_genome_factory)
+        print("Starting training loop...")
         
         for gen in range(self.optimizer.generations):
             if self._stop_flag:

@@ -6,7 +6,7 @@ from dataclasses import dataclass
 from typing import Tuple, List, Optional, Callable, Any, Dict
 import numpy as np
 import multiprocessing as mp
-from utils import mean_squared_error
+from utils import mean_squared_error, InformantStrategy
 from pso import ParticleSwarmOptimisation, AccelerationCoefficients
 from sequential import Sequential
 from linear import Linear
@@ -170,6 +170,7 @@ class PsoEvaluator:
         Y_test: np.ndarray,
         base_model_builder: Callable[[], Any],
         loss_function: Callable[[np.ndarray, np.ndarray], float],
+        informants_strategy: InformantStrategy = InformantStrategy.RANDOM,
         max_train_seconds: float = 10.0,
         patience_window: int = 20,
         num_genome_repeats_per_iteration: int = 3,
@@ -190,6 +191,7 @@ class PsoEvaluator:
         self.Y_test = Y_test
         self.base_model_builder = base_model_builder
         self.loss_function = loss_function
+        self.informants_strategy = informants_strategy
         self.max_train_seconds = max_train_seconds
         self.patience_window = patience_window
         self.num_genome_repeats_per_iteration = num_genome_repeats_per_iteration
@@ -260,16 +262,19 @@ class PsoEvaluator:
             try:
                 epoch = 0
                 # replace PSO.train loop with a time-aware training
-                # pso.update_informants_random()
+                if self.informants_strategy == InformantStrategy.RANDOM:
+                    pso.update_informants_random()
                 # compute an initial loss to detect explosion (if available)
                 # We'll compute first fitness properly
                 initial_fitness = pso.update_best_global()
+                stopped_early = False
                 while True:
                     # check time limit
                     if time.time() - start_time > self.max_train_seconds:
                         break
                     # iterate a small PSO step: velocities, positions, recompute bests
-                    pso.update_informants_nearest()
+                    if self.informants_strategy == InformantStrategy.KNEAREST:
+                        pso.update_informants_nearest()
                     pso.update_velocities()
                     pso.update_positions()
                     avg_fitness = pso.update_best_global()
@@ -280,12 +285,13 @@ class PsoEvaluator:
                         # heavy penalty
                         if self.verbose:
                             print("[eval] explosion detected. stopping early.")
+                        stopped_early = True
                         accuracies.append(0.0)
                         break
 
-                    if epoch % self.accuracy_checks_every == 0:
-                        acc = pso.get_accuracy(self.X, self.Y)
-                        accuracies.append(acc)
+                    # if epoch % self.accuracy_checks_every == 0:
+                    #     acc = pso.get_accuracy(self.X, self.Y)
+                    #     accuracies.append(acc)
                     # early stopping: check last window
                     if len(last_losses) > self.patience_window:
                         # consider improvement if best decreased at least once in window
@@ -294,15 +300,17 @@ class PsoEvaluator:
                             if self.verbose:
                                 print(f"[eval] early stopping at epoch {epoch}")
                             accuracies.append(pso.get_accuracy(self.X, self.Y))
+                            stopped_early = True
                             break
                     epoch += 1
                 # normal return: the best found
-                acc = pso.get_accuracy(self.X, self.Y)
-                if self.verbose:
-                    print(
-                        f"[eval] completed training epochs: {epoch}, accuracy: {acc:.6g}"
-                    )
-                accuracies.append(acc)
+                if not stopped_early:
+                    acc = pso.get_accuracy(self.X, self.Y)
+                    if self.verbose:
+                        print(
+                            f"[eval] completed training epochs: {epoch}, accuracy: {acc:.6g}"
+                        )
+                    accuracies.append(acc)
             except Exception as e:
                 # crash in training -> penalize heavily
                 if self.verbose:
@@ -310,14 +318,21 @@ class PsoEvaluator:
                 accuracies.append(0.0)
 
         if key in self.cache:
-            self.cache[key].accuracy_counts += self.num_genome_repeats_per_iteration
+            self.cache[key].accuracy_counts += len(accuracies)
+            self.cache[key].accuracy_list += accuracies
         else:
-            new_individual.accuracy_counts = self.num_genome_repeats_per_iteration
-            new_individual.accuracy_list = []
+            new_individual.accuracy_counts = len(accuracies)
+            new_individual.accuracy_list = accuracies
             self.cache[key] = new_individual
-        updated_accuracies = self.cache[key].accuracy_list + accuracies
+        updated_accuracies = self.cache[key].accuracy_list
         mean_accuracy = np.mean(updated_accuracies)
         self.cache[key].accuracy = mean_accuracy
+        
+        # print(self.cache[key].accuracy_list)
+        print()
+        print(mean_accuracy, accuracies)
+        for key, value in self.cache.items():
+            print(f"-> Accuracy: {value.accuracy}, Counts: {value.accuracy_counts}, list: {value.accuracy_list}")
 
         return self.cache[key]
 
@@ -366,6 +381,7 @@ class GeneticPsoOptimizer:
         self.tournament_k = tournament_k
         self.parallel = parallel
         self.population: List[GeneticIndividual] = []
+        self.cache: Dict[str, GeneticIndividual] = {}
 
     def initialize(self, seed_genome_factory: Callable[[], PsoGenome]):
         self.population = [
@@ -393,7 +409,10 @@ class GeneticPsoOptimizer:
 
         else:
             evaluator = PsoEvaluator(**self.evaluator_config)
+            evaluator.cache = self.cache
             self.population = [evaluator.evaluate(ind) for ind in self.population]
+            self.cache |= evaluator.cache
+            print("Cache size:", len(self.cache))
 
     def tournament_select(self) -> PsoGenome:
         contenders = random.sample(self.population, self.tournament_k)
@@ -441,10 +460,10 @@ class GeneticPsoOptimizer:
             self.step()
             self.evaluate_population()
             best_history.append(
-                min(self.population, key=lambda ind: ind.accuracy).accuracy
+                max(self.population, key=lambda ind: ind.accuracy).accuracy
             )
         # final best
-        best_ind = min(self.population, key=lambda ind: ind.accuracy)
+        best_ind = max(self.population, key=lambda ind: ind.accuracy)
         return best_ind, best_history
 
     def _bounds(self):
