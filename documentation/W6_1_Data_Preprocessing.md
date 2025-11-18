@@ -1,8 +1,10 @@
-# W1 - Data preprocessing
+# W6 - Part 1 - Data preprocessing
 
 Table of Contents
 
-
+- [1. Reading the coursework's instructions](#1-reading-the-courseworks-instructions)
+- [2. Understanding the dataset](#2-understanding-the-dataset)
+- [3. Next Steps](#3-next-steps)
 
 
 ## 1. Reading the coursework's instructions
