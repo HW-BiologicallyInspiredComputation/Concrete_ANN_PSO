@@ -22,6 +22,8 @@ After reading the instructions, we proceeded to understand the dataset provided 
 The dataset contains various features related to the ingredients of concrete, such as cement, blast furnace slag, fly ash, water, superplasticizer, coarse aggregate, fine aggregate, and age.
 The target variable is the compressive strength of the concrete.
 
+![Concrete Compressive Strength Data Set](img/W6_1_Dataset.png)
+
 Using the Pandas library, we loaded the dataset and split it in a way that 70% of the data is used for training and 30% for testing.
 For the splitting we used the following code:
 
