@@ -7,3 +7,5 @@ __pycache__/
 old_animated_pso.py
 .DS_Store
 *.mp4
+
+*.png
