@@ -1,0 +1,33 @@
+===== GLOBAL EXPERIMENT SUMMARY =====
+
+=== PSO Hyperparameters ===
+Swarm size: 48
+Epochs: 200
+Inertia: 0.708
+Cognitive: 1.906
+Social: 0.288
+Global best: 1.3
+Jump size: 0.76
+Max velocity: 0.9
+Max position: 3.87
+Informants: 6
+Initial position scale: (0.036145, 0.0893)
+
+=== RESULTS OVER 8 RUNS ===
+Run 1: Loss = 0.00733, Train Acc = 84.45%, Test Acc = 85.62%
+Run 2: Loss = 0.00725, Train Acc = 84.62%, Test Acc = 84.38%
+Run 3: Loss = 0.01023, Train Acc = 81.85%, Test Acc = 82.11%
+Run 4: Loss = 0.00909, Train Acc = 83.25%, Test Acc = 83.44%
+Run 5: Loss = 0.00890, Train Acc = 82.78%, Test Acc = 84.01%
+Run 6: Loss = 0.00775, Train Acc = 84.00%, Test Acc = 84.35%
+Run 7: Loss = 0.00791, Train Acc = 83.55%, Test Acc = 84.46%
+Run 8: Loss = 0.01011, Train Acc = 82.00%, Test Acc = 82.27%
+
+=== Averages ===
+Average Loss: 0.008570
+Average Train Accuracy: 83.31%
+Average Test Accuracy: 83.83%
+
+=== Standard Deviations ===
+Std Train Acc: 0.98
+Std Test Acc: 1.10
