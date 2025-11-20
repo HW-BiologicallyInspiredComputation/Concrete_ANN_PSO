@@ -1,0 +1,38 @@
+===== GLOBAL EXPERIMENT SUMMARY =====
+
+=== ANN Structure ===
+Topology: 8-4-1 with ReLU activations
+
+=== PSO Hyperparameters ===
+Swarm size: 45
+Epochs: 200
+Inertia: 0.708
+Cognitive: 1.898
+Social: 0.351
+Global best weight: 0.684
+Jump size: 0.851
+Max velocity: 0.9
+Max position: 3.87
+Informants: 4
+Initial position scale: (0.0001, 0.05)
+
+=== RESULTS OVER 10 RUNS ===
+Run 1: Loss = 0.01620, Train Acc = 76.56%, Test Acc = 77.68%
+Run 2: Loss = 0.01473, Train Acc = 78.45%, Test Acc = 78.01%
+Run 3: Loss = 0.01261, Train Acc = 79.44%, Test Acc = 79.39%
+Run 4: Loss = 0.01620, Train Acc = 76.53%, Test Acc = 77.64%
+Run 5: Loss = 0.01622, Train Acc = 76.52%, Test Acc = 77.64%
+Run 6: Loss = 0.01224, Train Acc = 80.56%, Test Acc = 82.14%
+Run 7: Loss = 0.01586, Train Acc = 76.94%, Test Acc = 78.18%
+Run 8: Loss = 0.01485, Train Acc = 77.57%, Test Acc = 78.86%
+Run 9: Loss = 0.01488, Train Acc = 77.86%, Test Acc = 78.37%
+Run 10: Loss = 0.01458, Train Acc = 78.20%, Test Acc = 79.10%
+
+=== Averages ===
+Average Loss: 0.014836
+Average Train Accuracy: 77.86%
+Average Test Accuracy: 78.70%
+
+=== Standard Deviations ===
+Std Train Acc: 1.28
+Std Test Acc: 1.29

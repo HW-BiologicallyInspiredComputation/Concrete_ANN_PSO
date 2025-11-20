@@ -1,5 +1,5 @@
 .venv
-*.txt
+
 __pycache__/
 *.db
 *_log.csv
