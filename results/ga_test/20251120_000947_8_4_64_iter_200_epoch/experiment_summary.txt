@@ -1,0 +1,89 @@
+===== GLOBAL EXPERIMENT SUMMARY =====
+
+=== PSO Hyperparameters ===
+Swarm size: 48
+Epochs: 200
+Inertia: 0.708
+Cognitive: 1.906
+Social: 0.288
+Global best: 1.3
+Jump size: 0.76
+Max velocity: 0.9
+Max position: 3.87
+Informants: 6
+Initial position scale: (0.036145, 0.0893)
+
+=== RESULTS OVER 64 RUNS ===
+Run 1: Loss = 0.00924, Train Acc = 82.62%, Test Acc = 82.47%
+Run 2: Loss = 0.00766, Train Acc = 84.36%, Test Acc = 85.49%
+Run 3: Loss = 0.00698, Train Acc = 84.81%, Test Acc = 85.71%
+Run 4: Loss = 0.01512, Train Acc = 77.40%, Test Acc = 78.14%
+Run 5: Loss = 0.00862, Train Acc = 83.01%, Test Acc = 83.58%
+Run 6: Loss = 0.00767, Train Acc = 84.14%, Test Acc = 84.30%
+Run 7: Loss = 0.01480, Train Acc = 77.99%, Test Acc = 79.09%
+Run 8: Loss = 0.00677, Train Acc = 84.96%, Test Acc = 86.54%
+Run 9: Loss = 0.00720, Train Acc = 84.40%, Test Acc = 85.61%
+Run 10: Loss = 0.00688, Train Acc = 85.30%, Test Acc = 86.36%
+Run 11: Loss = 0.00736, Train Acc = 84.52%, Test Acc = 85.00%
+Run 12: Loss = 0.01623, Train Acc = 76.51%, Test Acc = 77.63%
+Run 13: Loss = 0.00755, Train Acc = 84.09%, Test Acc = 84.78%
+Run 14: Loss = 0.00859, Train Acc = 83.41%, Test Acc = 83.43%
+Run 15: Loss = 0.00759, Train Acc = 84.09%, Test Acc = 84.27%
+Run 16: Loss = 0.00778, Train Acc = 83.99%, Test Acc = 84.26%
+Run 17: Loss = 0.00751, Train Acc = 84.25%, Test Acc = 85.48%
+Run 18: Loss = 0.00795, Train Acc = 83.64%, Test Acc = 84.66%
+Run 19: Loss = 0.00711, Train Acc = 84.85%, Test Acc = 85.78%
+Run 20: Loss = 0.01013, Train Acc = 81.79%, Test Acc = 82.00%
+Run 21: Loss = 0.00704, Train Acc = 84.83%, Test Acc = 85.53%
+Run 22: Loss = 0.00793, Train Acc = 83.66%, Test Acc = 84.50%
+Run 23: Loss = 0.01426, Train Acc = 78.41%, Test Acc = 78.82%
+Run 24: Loss = 0.00866, Train Acc = 83.33%, Test Acc = 83.92%
+Run 25: Loss = 0.00946, Train Acc = 82.50%, Test Acc = 81.98%
+Run 26: Loss = 0.00696, Train Acc = 84.92%, Test Acc = 85.94%
+Run 27: Loss = 0.01138, Train Acc = 80.62%, Test Acc = 81.32%
+Run 28: Loss = 0.00711, Train Acc = 84.77%, Test Acc = 85.15%
+Run 29: Loss = 0.01196, Train Acc = 80.39%, Test Acc = 80.72%
+Run 30: Loss = 0.00729, Train Acc = 84.30%, Test Acc = 85.04%
+Run 31: Loss = 0.00834, Train Acc = 83.16%, Test Acc = 83.81%
+Run 32: Loss = 0.01505, Train Acc = 78.04%, Test Acc = 78.94%
+Run 33: Loss = 0.00811, Train Acc = 83.55%, Test Acc = 83.98%
+Run 34: Loss = 0.01452, Train Acc = 77.97%, Test Acc = 80.11%
+Run 35: Loss = 0.00763, Train Acc = 84.27%, Test Acc = 84.12%
+Run 36: Loss = 0.01614, Train Acc = 76.51%, Test Acc = 77.41%
+Run 37: Loss = 0.00808, Train Acc = 83.79%, Test Acc = 84.03%
+Run 38: Loss = 0.01423, Train Acc = 78.25%, Test Acc = 78.45%
+Run 39: Loss = 0.00993, Train Acc = 82.22%, Test Acc = 82.25%
+Run 40: Loss = 0.01594, Train Acc = 76.79%, Test Acc = 77.64%
+Run 41: Loss = 0.00781, Train Acc = 83.89%, Test Acc = 83.94%
+Run 42: Loss = 0.00765, Train Acc = 83.95%, Test Acc = 84.33%
+Run 43: Loss = 0.00853, Train Acc = 82.94%, Test Acc = 82.96%
+Run 44: Loss = 0.00770, Train Acc = 83.97%, Test Acc = 84.35%
+Run 45: Loss = 0.00836, Train Acc = 83.55%, Test Acc = 83.56%
+Run 46: Loss = 0.00790, Train Acc = 83.67%, Test Acc = 84.39%
+Run 47: Loss = 0.00838, Train Acc = 83.76%, Test Acc = 84.21%
+Run 48: Loss = 0.01002, Train Acc = 81.95%, Test Acc = 82.37%
+Run 49: Loss = 0.00760, Train Acc = 84.02%, Test Acc = 84.54%
+Run 50: Loss = 0.00707, Train Acc = 84.87%, Test Acc = 85.86%
+Run 51: Loss = 0.00960, Train Acc = 82.70%, Test Acc = 83.61%
+Run 52: Loss = 0.00738, Train Acc = 84.61%, Test Acc = 84.39%
+Run 53: Loss = 0.00764, Train Acc = 84.29%, Test Acc = 85.01%
+Run 54: Loss = 0.01575, Train Acc = 77.27%, Test Acc = 77.57%
+Run 55: Loss = 0.01024, Train Acc = 81.77%, Test Acc = 81.43%
+Run 56: Loss = 0.01041, Train Acc = 81.79%, Test Acc = 82.03%
+Run 57: Loss = 0.00909, Train Acc = 83.29%, Test Acc = 83.39%
+Run 58: Loss = 0.00726, Train Acc = 84.77%, Test Acc = 84.83%
+Run 59: Loss = 0.00817, Train Acc = 83.72%, Test Acc = 84.30%
+Run 60: Loss = 0.00925, Train Acc = 82.64%, Test Acc = 83.90%
+Run 61: Loss = 0.01604, Train Acc = 76.61%, Test Acc = 77.98%
+Run 62: Loss = 0.00822, Train Acc = 83.39%, Test Acc = 83.89%
+Run 63: Loss = 0.00963, Train Acc = 82.26%, Test Acc = 81.95%
+Run 64: Loss = 0.00735, Train Acc = 84.35%, Test Acc = 85.27%
+
+=== Averages ===
+Average Loss: 0.009466
+Average Train Accuracy: 82.54%
+Average Test Accuracy: 83.10%
+
+=== Standard Deviations ===
+Std Train Acc: 2.55
+Std Test Acc: 2.51
