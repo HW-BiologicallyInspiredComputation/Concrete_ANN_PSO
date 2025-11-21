@@ -122,4 +122,4 @@ We made the PSO to
 
 ### Graphs
 - [ ] plot fitness over hyperparameters (number of particles, inertia weight, cognitive and social coefficients, number of informants, topology)
-- [ ] plot two hyperparameters to compare them:  eg. plot cognitive over social with point size for fitnesses
+- [x] plot hyperparameters to compare them:  eg. plot cognitive over social with point size for fitnesses
