@@ -1,15 +1,19 @@
 import numpy as np
 from enum import Enum
 
+
 class InformantStrategy(Enum):
     RANDOM = 1
     KNEAREST = 2
 
+
 # Define evaluation metrics for evaluating model performance
+
 
 # MSE
 def mean_squared_error(y_true: np.ndarray, y_pred: np.ndarray) -> float:
     return np.mean((y_true - y_pred) ** 2)
+
 
 # MAE
 def mean_absolute_error(y_true: np.ndarray, y_pred: np.ndarray) -> float:
@@ -20,11 +24,13 @@ def mean_absolute_error(y_true: np.ndarray, y_pred: np.ndarray) -> float:
 def root_mean_squared_error(y_true: np.ndarray, y_pred: np.ndarray) -> float:
     return np.sqrt(mean_squared_error(y_true, y_pred))
 
+
 # R2 Score
 def r2_score(y_true: np.ndarray, y_pred: np.ndarray) -> float:
     ss_res = np.sum((y_true - y_pred) ** 2)
     ss_tot = np.sum((y_true - np.mean(y_true)) ** 2)
     return 1 - (ss_res / ss_tot)
+
 
 if __name__ == "__main__":
     y_true = np.array([3.0, -0.5, 2.0, 7.0])

@@ -156,7 +156,7 @@ class ParticleSwarmOptimisation:
 
     def train(self, epochs):
         for epoch in range(epochs):
-            avg_fitness = self.train_epoch(epoch)
+            self.train_epoch(epoch)
 
         return (self.best_global, self.best_global_fitness, self.losses)
 
@@ -210,7 +210,7 @@ if __name__ == "__main__":
         informants_strategy=informants_strategy,
         particle_initial_position_scale=particle_initial_position_scale,
         model=mlp,
-        animator=animator
+        animator=animator,
     )
 
     (final_position, final_score, losses) = pso.train(epochs)

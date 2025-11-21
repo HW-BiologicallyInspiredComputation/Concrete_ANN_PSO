@@ -331,9 +331,11 @@ class PsoEvaluator:
         updated_accuracies = self.cache[key].accuracy_list
         mean_accuracy = np.mean(updated_accuracies)
         self.cache[key].accuracy = mean_accuracy
-        
+
         with open("pso_eval_log.csv", "a") as f:
-            f.write(f"{mean_accuracy:.2f},{len(updated_accuracies)},{updated_accuracies},{key}\n")
+            f.write(
+                f"{mean_accuracy:.2f},{len(updated_accuracies)},{updated_accuracies},{key}\n"
+            )
 
         return self.cache[key]
 

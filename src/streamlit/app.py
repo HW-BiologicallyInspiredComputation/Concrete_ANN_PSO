@@ -1,8 +1,5 @@
 import streamlit as st
-import threading
 import time
-import random
-import pandas as pd
 from streamlit_autorefresh import st_autorefresh
 
 from train_manager import TrainManager

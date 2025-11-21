@@ -97,11 +97,16 @@ class PsoAnimator:
         return center, radius
 
     def get_best_particle_index(self, population: List[Particle]):
-        return min(
-            range(len(population)), key=lambda i: population[i].fittest
-        )
+        return min(range(len(population)), key=lambda i: population[i].fittest)
 
-    def plot(self, losses: List, avg_fitnesses: List, population: List[Particle], best_global, epoch=0):
+    def plot(
+        self,
+        losses: List,
+        avg_fitnesses: List,
+        population: List[Particle],
+        best_global,
+        epoch=0,
+    ):
         # if epoch % 2 == 0:
 
         # Create a figure with two subplots
