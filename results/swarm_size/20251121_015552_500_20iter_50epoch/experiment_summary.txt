@@ -1,0 +1,45 @@
+===== GLOBAL EXPERIMENT SUMMARY =====
+
+=== PSO Hyperparameters ===
+Swarm size: 48
+Epochs: 50
+Inertia: 0.708
+Cognitive: 1.906
+Social: 0.288
+Global best: 1.3
+Jump size: 0.76
+Max velocity: 0.9
+Max position: 3.87
+Informants: 6
+Initial position scale: (0.036145, 0.0893)
+
+=== RESULTS OVER 20 RUNS ===
+Run 1: Loss = 0.01501, Train Acc = 77.92%, Test Acc = 78.66%
+Run 2: Loss = 0.01056, Train Acc = 81.62%, Test Acc = 82.08%
+Run 3: Loss = 0.01031, Train Acc = 82.50%, Test Acc = 82.42%
+Run 4: Loss = 0.01067, Train Acc = 81.48%, Test Acc = 81.55%
+Run 5: Loss = 0.01259, Train Acc = 79.95%, Test Acc = 80.48%
+Run 6: Loss = 0.01675, Train Acc = 76.06%, Test Acc = 76.17%
+Run 7: Loss = 0.01201, Train Acc = 80.55%, Test Acc = 80.86%
+Run 8: Loss = 0.01520, Train Acc = 77.78%, Test Acc = 78.33%
+Run 9: Loss = 0.01151, Train Acc = 80.66%, Test Acc = 80.76%
+Run 10: Loss = 0.01241, Train Acc = 80.09%, Test Acc = 81.75%
+Run 11: Loss = 0.01708, Train Acc = 76.07%, Test Acc = 77.57%
+Run 12: Loss = 0.01122, Train Acc = 81.04%, Test Acc = 81.58%
+Run 13: Loss = 0.01678, Train Acc = 76.62%, Test Acc = 78.14%
+Run 14: Loss = 0.01259, Train Acc = 79.73%, Test Acc = 78.91%
+Run 15: Loss = 0.01171, Train Acc = 81.08%, Test Acc = 81.34%
+Run 16: Loss = 0.00967, Train Acc = 82.57%, Test Acc = 83.46%
+Run 17: Loss = 0.00836, Train Acc = 83.16%, Test Acc = 83.71%
+Run 18: Loss = 0.01213, Train Acc = 80.30%, Test Acc = 80.66%
+Run 19: Loss = 0.00845, Train Acc = 83.47%, Test Acc = 83.51%
+Run 20: Loss = 0.01156, Train Acc = 80.69%, Test Acc = 81.94%
+
+=== Averages ===
+Average Loss: 0.012329
+Average Train Accuracy: 80.17%
+Average Test Accuracy: 80.69%
+
+=== Standard Deviations ===
+Std Train Acc: 2.17
+Std Test Acc: 2.05
