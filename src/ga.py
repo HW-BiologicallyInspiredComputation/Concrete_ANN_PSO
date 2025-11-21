@@ -257,6 +257,7 @@ class PsoEvaluator:
                     1, min(genome.num_informants, genome.swarm_size - 1)
                 ),
                 loss_function=self.loss_function,
+                informants_strategy=self.informants_strategy,
                 particle_initial_position_scale=genome.particle_initial_position_scale,
                 model=model,
             )
@@ -284,13 +285,13 @@ class PsoEvaluator:
                     last_losses.append(pso.best_global_fitness)
 
                     # explosion detection
-                    if avg_fitness > initial_fitness * self.explosion_factor:
-                        # heavy penalty
-                        if self.verbose:
-                            print("[eval] explosion detected. stopping early.")
-                        stopped_early = True
-                        accuracies.append(0.0)
-                        break
+                    # if avg_fitness > initial_fitness * self.explosion_factor:
+                    #     # heavy penalty
+                    #     if self.verbose:
+                    #         print("[eval] explosion detected. stopping early.")
+                    #     stopped_early = True
+                    #     accuracies.append(0.0)
+                    #     break
 
                     # if epoch % self.accuracy_checks_every == 0:
                     #     acc = pso.get_accuracy(self.X, self.Y)
@@ -330,14 +331,9 @@ class PsoEvaluator:
         updated_accuracies = self.cache[key].accuracy_list
         mean_accuracy = np.mean(updated_accuracies)
         self.cache[key].accuracy = mean_accuracy
-
-        # print(self.cache[key].accuracy_list)
-        print()
-        print(mean_accuracy, accuracies)
-        for key, value in self.cache.items():
-            print(
-                f"-> Accuracy: {value.accuracy}, Counts: {value.accuracy_counts}, list: {value.accuracy_list}"
-            )
+        
+        with open("pso_eval_log.csv", "a") as f:
+            f.write(f"{mean_accuracy:.2f},{len(updated_accuracies)},{updated_accuracies},{key}\n")
 
         return self.cache[key]
 
@@ -419,7 +415,6 @@ class GeneticPsoOptimizer:
             evaluator.cache = self.cache
             self.population = [evaluator.evaluate(ind) for ind in self.population]
             self.cache |= evaluator.cache
-            print("Cache size:", len(self.cache))
 
     def tournament_select(self) -> PsoGenome:
         contenders = random.sample(self.population, self.tournament_k)
@@ -535,6 +530,7 @@ if __name__ == "__main__":
                 ]
             ),
             loss_function=mean_squared_error,
+            informants_strategy=InformantStrategy.KNEAREST,
             max_train_seconds=10.0,
             patience_window=10,
             explosion_factor=1e1,

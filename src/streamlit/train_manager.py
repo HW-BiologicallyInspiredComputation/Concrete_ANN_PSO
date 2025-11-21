@@ -36,9 +36,9 @@ class TrainManager:
             base_model_builder=partial(build_base_model, input_size=input_size),
             loss_function=mean_squared_error,
             informants_strategy=InformantStrategy.KNEAREST,
-            max_train_seconds=0.9,
-            num_genome_repeats_per_iteration=3,
-            max_repeats_per_genome=21,
+            max_train_seconds=4,
+            num_genome_repeats_per_iteration=6,
+            max_repeats_per_genome=30,
             explosion_factor=100,
             accuracy_checks_every=20,
             patience_window=10,
@@ -47,12 +47,12 @@ class TrainManager:
 
         self.optimizer = GeneticPsoOptimizer(
             evaluator_config=self.evaluator_config,
-            population_size=12,
-            generations=50,
+            population_size=24,
+            generations=100,
             mutation_rate=0.2,
-            crossover_rate=0.6,
-            elitism=3,
-            tournament_k=3,
+            crossover_rate=0.4,
+            elitism=6,
+            tournament_k=4,
             parallel=False,
         )
 
